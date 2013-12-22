@@ -44,3 +44,13 @@ app.filter('reverse', function() {
 		return list.slice().reverse();
 	};
 });
+
+app.filter('groupColor', function(Board) {
+	var colors = {};
+	Board.then(function(data) {
+		colors = _.object(_.map(data.groups, function(x) { return x.name; }), _.map(data.groups, function(x) { return x.color; }));
+	});
+	return function(group) {
+		return colors[group] || "white";
+	};
+});

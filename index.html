@@ -3,6 +3,7 @@
 	<head>
 		<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/foundation/5.0.2/css/foundation.min.css"></link>
 		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/foundation/5.0.2/js/foundation.min.js"></script>
+		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
 
 		<link rel="stylesheet" type="text/css" href="main.css"></link>
 		<title>Pandemic</title>
@@ -11,7 +12,7 @@
 		<div class="row">
 			<div class="columns large-12">
 				<svg width="1024" height="724" ng-controller="MapCtrl" style="background-image: url('img/map.jpg">
-					<rect ng-repeat="city in cities" x="{{city.x}}" y="{{city.y}}" width="27" height="27" style="fill:blue" />
+					<rect ng-repeat="city in cities" x="{{city.x}}" y="{{city.y}}" width="27" height="27" style="fill:{{city.group | groupColor}}" />
 				</svg>
 			</div>
 		</div>
