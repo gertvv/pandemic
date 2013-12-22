@@ -1,0 +1,23 @@
+#message-log {
+	height: 12rem;
+	overflow-y: scroll;
+}
+
+#message-log .label {
+	vertical-align: middle;
+}
+
+#message-log .label.user {
+	background-color: rgb(0, 140, 186); // $primary-color;
+	color: white;
+}
+
+#message-log .label.system {
+	background-color: rgb(67, 172, 106); // $success-color;
+	color: white;
+}
+
+#message-log .label.game {
+	background-color: rgb(240, 65, 36); // $alert-color;
+	color: white;
+}
