@@ -1,0 +1,36 @@
+<div class="row">
+  <div class="columns large-12">
+    <h1>Pandemic</h1>
+
+    <h2>Welcome</h2>
+
+    <form>
+      <div class="row">
+        <div class="columns large-2">
+          You are:
+        </div>
+        <div class="columns large-4">
+          <input type="text" ng-model="user.name" placeholder="Your name here..."></input>
+        </div>
+        <div class="columns large-2">
+          <button class="button postfix" ng-click="setName(user.name)">Save</input>
+        </div>
+        <div class="columns large-4">
+          <span ng-show="userNameUpdated == 'success'" class="label success">Username updated</span>
+          <span ng-show="userNameUpdated == 'error'" class="label alert">Username update failed</span>
+        </div>
+      </div>
+    </form>
+
+    <h2>Join an existing game</h2>
+
+    <p ng-hide="games.length">No current games.</p>
+    <ul>
+      <li ng-repeat="game in games"><a ui-sref="root.game({ id: game.id })">{{ game.title }} ({{ game.id }})</a></li>
+    </ul>
+
+    <h2>Create a new game</h2>
+
+    <button class="button" ng-click="createGame()">Create game</button>
+  </div>
+</div>

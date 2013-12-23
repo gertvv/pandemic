@@ -1,0 +1,52 @@
+<div class="row">
+  <div class="columns large-12">
+    <svg width="1024" height="724" ng-controller="MapCtrl" style="background-image: url('img/map.jpg">
+      <rect ng-repeat="city in cities" x="{{city.x}}" y="{{city.y}}" width="27" height="27" style="fill:{{city.group | groupColor}}" />
+    </svg>
+  </div>
+</div>
+<div class="row">
+  <div class="columns large-4">
+    <div ng-controller="ChatCtrl">
+      <div class="row">
+        <div class="large-12 columns">
+          <div class="row collapse">
+            <div class="columns">
+              <input type="text" ng-model="user.name" placeholder="Your name here..."></input>
+            </div>
+          </div>
+          <div class="row" id="message-log">
+            <div class="columns">
+              <ul class="no-bullet">
+                <li ng-repeat="message in log | reverse">
+                  <span class="label secondary">
+                    {{message.date | date:'HH:mm:ss'}}
+                  </span>
+                  <span data-tooltip title="ID:{{message.from.id}}" class="has-tip label {{message.from.type}}">
+                    {{message.from.name}}
+                  </span>
+                  <span>{{message.text}}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <form>
+            <div class="row collapse">
+              <div class="columns">
+                <input type="text" ng-model="text" placeholder="Chat message..."></input>
+              </div>
+              <div class="columns">
+                <button class="button postfix"
+                  ng-click="post(text)"
+                  ng-disabled="!user.name || !text">Post</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="columns large-4">
+    <p>Some status info here</p>
+  </div>
+</div>
