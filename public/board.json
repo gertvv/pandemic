@@ -1,5 +1,27 @@
 {
-  "groups": [
+  "roles": [
+    {
+      "name": "Dispatcher",
+      "color": "#c03ea2"
+    },
+    {
+      "name": "Operations Expert",
+      "color": "#80cb26"
+    },
+    {
+      "name": "Scientist",
+      "color": "#e6e6e7"
+    },
+    {
+      "name": "Medic",
+      "color": "#f38211"
+    },
+    {
+      "name": "Researcher",
+      "color": "#ab7845"
+    }
+  ],
+  "diseases": [
     {
       "name": "Blue",
       "color": "#1d61ce"
@@ -15,298 +37,294 @@
     {
       "name": "Red",
       "color": "#c21b08"
-    },
-    {
-      "name": "Purple",
-      "color": "#c9168b"
     }
   ],
   "cities": [
     {
       "name": "San Francisco",
-      "group": "Blue",
+      "disease": "Blue",
       "x": 50,
       "y": 210
     },
     {
       "name": "Chicago",
-      "group": "Blue",
+      "disease": "Blue",
       "x": 131,
       "y": 159
     },
     {
       "name": "Toronto",
-      "group": "Blue",
+      "disease": "Blue",
       "x": 190,
       "y": 149
     },
     {
       "name": "Atlanta",
-      "group": "Blue",
+      "disease": "Blue",
       "x": 165,
       "y": 203
     },
     {
       "name": "New York",
-      "group": "Blue",
+      "disease": "Blue",
       "x": 269,
       "y": 176
     },
     {
       "name": "Washington DC",
-      "group": "Blue",
+      "disease": "Blue",
       "x": 232,
       "y": 225
     },
     {
       "name": "London",
-      "group": "Blue",
+      "disease": "Blue",
       "x": 390,
       "y": 123
     },
     {
       "name": "Madrid",
-      "group": "Blue",
+      "disease": "Blue",
       "x": 387,
       "y": 209
     },
     {
       "name": "Essen",
-      "group": "Blue",
+      "disease": "Blue",
       "x": 469,
       "y": 105
     },
     {
       "name": "Paris",
-      "group": "Blue",
+      "disease": "Blue",
       "x": 454,
       "y": 150
     },
     {
       "name": "Milan",
-      "group": "Blue",
+      "disease": "Blue",
       "x": 507,
       "y": 149
     },
     {
       "name": "St. Petersburg",
-      "group": "Blue",
+      "disease": "Blue",
       "x": 544,
       "y": 92
     },
     {
       "name": "Algiers",
-      "group": "Black",
+      "disease": "Black",
       "x": 454,
       "y": 247
     },
     {
       "name": "Cairo",
-      "group": "Black",
+      "disease": "Black",
       "x": 520,
       "y": 269
     },
     {
       "name": "Riyadh",
-      "group": "Black",
+      "disease": "Black",
       "x": 598,
       "y": 297
     },
     {
       "name": "Baghdad",
-      "group": "Black",
+      "disease": "Black",
       "x": 588,
       "y": 232
     },
     {
       "name": "Istanbul",
-      "group": "Black",
+      "disease": "Black",
       "x": 546,
       "y": 190
     },
     {
       "name": "Moscow",
-      "group": "Black",
+      "disease": "Black",
       "x": 595,
       "y": 132
     },
     {
       "name": "Tehran",
-      "group": "Black",
+      "disease": "Black",
       "x": 643,
       "y": 184
     },
     {
       "name": "Karachi",
-      "group": "Black",
+      "disease": "Black",
       "x": 646,
       "y": 249
     },
     {
       "name": "Delhi",
-      "group": "Black",
+      "disease": "Black",
       "x": 710,
       "y": 222
     },
     {
       "name": "Mumbai",
-      "group": "Black",
+      "disease": "Black",
       "x": 670,
       "y": 306
     },
     {
       "name": "Chennai",
-      "group": "Black",
+      "disease": "Black",
       "x": 721,
       "y": 348
     },
     {
       "name": "Kolkata",
-      "group": "Black",
+      "disease": "Black",
       "x": 765,
       "y": 252
     },
     {
       "name": "Bangkok",
-      "group": "Red",
+      "disease": "Red",
       "x": 772,
       "y": 321
     },
     {
       "name": "Jakarta",
-      "group": "Red",
+      "disease": "Red",
       "x": 779,
       "y": 395
     },
     {
       "name": "Sydney",
-      "group": "Red",
+      "disease": "Red",
       "x": 949,
       "y": 481
     },
     {
       "name": "Manila",
-      "group": "Red",
+      "disease": "Red",
       "x": 895,
       "y": 349
     },
     {
       "name": "Ho Chi Minh",
-      "group": "Red",
+      "disease": "Red",
       "x": 830,
       "y": 351
     },
     {
       "name": "Hong Kong",
-      "group": "Red",
+      "disease": "Red",
       "x": 818,
       "y": 279
     },
     {
       "name": "Shanghai",
-      "group": "Red",
+      "disease": "Red",
       "x": 809,
       "y": 223
     },
     {
       "name": "Beijing",
-      "group": "Red",
+      "disease": "Red",
       "x": 800,
       "y": 158
     },
     {
       "name": "Seoul",
-      "group": "Red",
+      "disease": "Red",
       "x": 877,
       "y": 160
     },
     {
       "name": "Tokyo",
-      "group": "Red",
+      "disease": "Red",
       "x": 930,
       "y": 184
     },
     {
       "name": "Osaka",
-      "group": "Red",
+      "disease": "Red",
       "x": 923,
       "y": 235
     },
     {
       "name": "Taipei",
-      "group": "Red",
+      "disease": "Red",
       "x": 880,
       "y": 261
     },
     {
       "name": "Los Angeles",
-      "group": "Yellow",
+      "disease": "Yellow",
       "x": 66,
       "y": 270
     },
     {
       "name": "Mexico City",
-      "group": "Yellow",
+      "disease": "Yellow",
       "x": 131,
       "y": 307
     },
     {
       "name": "Miami",
-      "group": "Yellow",
+      "disease": "Yellow",
       "x": 207,
       "y": 267
     },
     {
       "name": "Bogota",
-      "group": "Yellow",
+      "disease": "Yellow",
       "x": 204,
       "y": 331
     },
     {
       "name": "Lima",
-      "group": "Yellow",
+      "disease": "Yellow",
       "x": 183,
       "y": 398
     },
     {
       "name": "Santiago",
-      "group": "Yellow",
+      "disease": "Yellow",
       "x": 208,
       "y": 477
     },
     {
       "name": "Buenos Aires",
-      "group": "Yellow",
+      "disease": "Yellow",
       "x": 274,
       "y": 493
     },
     {
       "name": "São Paulo",
-      "group": "Yellow",
+      "disease": "Yellow",
       "x": 316,
       "y": 435
     },
     {
       "name": "Lagos",
-      "group": "Yellow",
+      "disease": "Yellow",
       "x": 446,
       "y": 317
     },
     {
       "name": "Khartoum",
-      "group": "Yellow",
+      "disease": "Yellow",
       "x": 545,
       "y": 328
     },
     {
       "name": "Johannesburg",
-      "group": "Yellow",
+      "disease": "Yellow",
       "x": 528,
       "y": 456
     },
     {
       "name": "Kinshasa",
-      "group": "Yellow",
+      "disease": "Yellow",
       "x": 495,
       "y": 388
     }

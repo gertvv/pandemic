@@ -1,7 +1,8 @@
 <div class="row">
   <div class="columns large-12">
-    <svg width="1024" height="724" ng-controller="MapCtrl" style="background-image: url('img/map.jpg">
-      <rect ng-repeat="city in cities" x="{{city.x}}" y="{{city.y}}" width="27" height="27" style="fill:{{city.group | groupColor}}" />
+    <svg width="1024" height="724" ng-controller="MapCtrl">
+      <image x="0" y="0" width="1024" height="724" xlink:href="img/map.jpg" />
+      <rect ng-repeat="city in cities" x="{{city.x}}" y="{{city.y}}" width="27" height="27" style="fill:{{city.disease | diseaseColor}}" />
     </svg>
   </div>
 </div>
@@ -13,7 +14,9 @@
           <div class="row collapse">
             <div class="columns">
               <ul class="no-bullet">
-                <li ng-repeat="user in users | orderBy:'name'">{{user.name}}</li>
+                <li ng-repeat="user in users | orderBy:'name'" data-tooltip title="ID:{{user.id}}" class="has-tip label {{user.type}}" style="margin-right: 2px;">
+                    {{user.name}}
+                </li>
               </ul>
             </div>
           </div>
@@ -49,7 +52,9 @@
     </div>
   </div>
   <div class="columns large-4" ng-controller="ActionsCtrl">
-    {{ users | json }}
-    <button class="button" ng-click="startGame()" ng-disabled="user.id != game.owner || users.length < 2 || users.length > 4">Start game</button>
+    <button class="button"
+      ng-click="startGame()"
+      ng-disabled="user.id != game.owner || users.length < 2 || users.length > 4"
+      ng-show="user.id == game.owner">Start game</button>
   </div>
 </div>

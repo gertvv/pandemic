@@ -89,6 +89,12 @@ function createWS(game) {
         message.date = Date.now();
         chat.emit('chat', message, errorLogger);
       });
+      socket.on('start', function() {
+        if (game.owner === userId) {
+          game.state = 'setup';
+          socket.emit('chat', { from: { 'name': 'Pandemic', 'type': 'system' }, text: 'The game is starting!', date: Date.now() });
+        }
+      });
       socket.on('disconnect', function() {
         game.activeUsers = _.without(game.activeUsers, userId);
         chat.emit('users', _.map(game.activeUsers, function(id) { return users[id]; }));
@@ -106,6 +112,7 @@ app.post('/games', function(req, res) {
     games[id] = {
       id: id,
       owner: userId,
+      state: 'lobby',
       title: 'Pandemic Game',
       _self: '/games/' + id,
       ws: '/games/' + id,

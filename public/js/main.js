@@ -12,6 +12,58 @@ app.factory('Board', function($http, $q) {
   return dfd.promise;
 });
 
+app.factory('GameState', function() {
+  var game, log, users, socket;
+
+  function init() {
+      game = {};
+      log = [];
+      users = [];
+      socket = null;
+  }
+  init();
+
+  function setGame(game) {
+    if (socket) {
+      socket.close();
+      init();
+    }
+    if (game) {
+      game = game;
+      var host = window.document.location.host;
+      var ws = 'ws://' + host + game.ws;
+      socket = io.connect(ws);
+      socket.on('chat', function(data) {
+        log.push(data);
+      });
+
+      socket.on('users', function(data) {
+        users.length = 0;
+        users.push.apply(users, data);
+      });
+    }
+  };
+
+  function post(text) {
+    socket.emit('post', {
+      text: text
+    });
+  };
+
+  function start() {
+    socket.emit('start');
+  };
+
+  return {
+    setGame: setGame,
+    game: game,
+    log: log,
+    users: users,
+    post: post,
+    start: start
+  };
+});
+
 app.controller('ChatCtrl', function($scope) {
   $scope.text = '';
   $scope.log = [];
@@ -46,9 +98,10 @@ app.controller('MapCtrl', function($scope, Board) {
   });
 });
 
-app.controller('ActionsCtrl', function($scope, Board) {
+app.controller('ActionsCtrl', function($scope, GameState) {
+  $scope.users = GameState.users;
   $scope.startGame = function() {
-    console.log("Starting game...");
+    GameState.start();
   }
 });
 
@@ -58,18 +111,19 @@ app.filter('reverse', function() {
   };
 });
 
-app.filter('groupColor', function(Board) {
+app.filter('diseaseColor', function(Board) {
   var colors = {};
   Board.then(function(data) {
-    colors = _.object(_.map(data.groups, function(x) { return x.name; }), _.map(data.groups, function(x) { return x.color; }));
+    colors = _.object(_.map(data.diseases, function(x) { return x.name; }), _.map(data.diseases, function(x) { return x.color; }));
   });
-  return function(group) {
-    return colors[group] || "white";
+  return function(disease) {
+    return colors[disease] || "white";
   };
 });
 
-function HomeCtrl($scope, $http, $location, games) {
+function HomeCtrl($scope, $http, $location, GameState, games) {
   $scope.games = games.data;
+  GameState.setGame(null);
   $scope.createGame = function() {
     $http({method: 'POST', url: '/games'})
       .success(function(data) {
@@ -143,8 +197,9 @@ app.config(function($stateProvider, $urlRouterProvider) {
         return $http({method: 'GET', url: '/games/' + $stateParams.id});
       }
     },
-    controller: function($scope, game) {
+    controller: function($scope, GameState, game) {
       $scope.game = game.data;
+      GameState.setGame($scope.game);
     }
   });
 });
