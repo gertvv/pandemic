@@ -181,7 +181,7 @@
 		{
 			"name": "Sydney",
 			"group": "Red",
-			"x": 349,
+			"x": 949,
 			"y": 481
 		},
 		{
@@ -222,7 +222,7 @@
 		},
 		{
 			"name": "Tokyo",
-			"group": "Blue",
+			"group": "Red",
 			"x": 930,
 			"y": 184
 		},
