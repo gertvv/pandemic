@@ -4,6 +4,7 @@
   "dependencies": {
     "express": "3.x",
     "socket.io": "*",
-    "cookie": "*"
+    "cookie": "*",
+    "underscore": "1.5.x"
   }
 }

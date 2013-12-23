@@ -2,7 +2,9 @@ var express = require('express'),
   app = express(),
   server = require('http').createServer(app),
   io = require('socket.io').listen(server),
-  cookie = require('cookie');
+  cookie = require('cookie'),
+  _ = require('underscore');
+
 
 app.use(express.static(__dirname + '/public'));
 app.use(express.cookieParser());
@@ -73,26 +75,45 @@ app.get('/games/:id?', function(req, res) {
   }
 });
 
-function createWS(url) {
-  var chat = io.of(url)
+function createWS(game) {
+  var chat = io.of(game.ws)
     .on('connection', function(socket) {
-      console.log();
       var token = cookie.parse(socket.handshake.headers.cookie).pandemicToken;
-      var user = users[userTokens[token]];
+      var userId = userTokens[token];
+      var user = users[userId];
+      game.activeUsers.push(userId);
+      chat.emit('users', _.map(game.activeUsers, function(id) { return users[id]; }));
       socket.emit('chat', { from: { 'name': 'Pandemic', 'type': 'system' }, text: 'Welcome to Pandemic!', date: Date.now() });
       socket.on('post', function(message) {
         message.from = user;
         message.date = Date.now();
         chat.emit('chat', message, errorLogger);
       });
+      socket.on('disconnect', function() {
+        game.activeUsers = _.without(game.activeUsers, userId);
+        chat.emit('users', _.map(game.activeUsers, function(id) { return users[id]; }));
+      });
     });
 }
 
 app.post('/games', function(req, res) {
-  var id = randomId(5);
-  games[id] = { id: id, title: 'Pandemic Game', _self: '/games/' + id, ws: '/games/' + id };
-  createWS(games[id].ws);
-  res.json(201, games[id]);
+  var token = req.cookies.pandemicToken;
+  if (!userTokens[token]) {
+    res.status(403);
+  } else {
+    var userId = userTokens[token];
+    var id = randomId(5);
+    games[id] = {
+      id: id,
+      owner: userId,
+      title: 'Pandemic Game',
+      _self: '/games/' + id,
+      ws: '/games/' + id,
+      activeUsers: []
+    };
+    createWS(games[id]);
+    res.json(201, games[id]);
+  }
   res.end();
 });
 

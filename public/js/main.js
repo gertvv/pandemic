@@ -15,12 +15,18 @@ app.factory('Board', function($http, $q) {
 app.controller('ChatCtrl', function($scope) {
   $scope.text = '';
   $scope.log = [];
+  $scope.users = [];
 
   var host = window.document.location.host;
   var ws = 'ws://' + host + $scope.game.ws;
   var socket = io.connect(ws);
   socket.on('chat', function(data) {
     $scope.log.push(data);
+    $scope.$apply();
+  });
+
+  socket.on('users', function(data) {
+    $scope.users = data;
     $scope.$apply();
   });
 
@@ -38,6 +44,12 @@ app.controller('MapCtrl', function($scope, Board) {
   Board.then(function(data) {
     $scope.cities = data.cities;
   });
+});
+
+app.controller('ActionsCtrl', function($scope, Board) {
+  $scope.startGame = function() {
+    console.log("Starting game...");
+  }
 });
 
 app.filter('reverse', function() {

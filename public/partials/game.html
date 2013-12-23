@@ -12,7 +12,9 @@
         <div class="large-12 columns">
           <div class="row collapse">
             <div class="columns">
-              <input type="text" ng-model="user.name" placeholder="Your name here..."></input>
+              <ul class="no-bullet">
+                <li ng-repeat="user in users | orderBy:'name'">{{user.name}}</li>
+              </ul>
             </div>
           </div>
           <div class="row" id="message-log">
@@ -46,7 +48,8 @@
       </div>
     </div>
   </div>
-  <div class="columns large-4">
-    <p>Some status info here</p>
+  <div class="columns large-4" ng-controller="ActionsCtrl">
+    {{ users | json }}
+    <button class="button" ng-click="startGame()" ng-disabled="user.id != game.owner || users.length < 2 || users.length > 4">Start game</button>
   </div>
 </div>
