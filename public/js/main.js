@@ -22,11 +22,19 @@ app.controller('ChatCtrl', function($scope) {
 		text: 'Welcome to Pandemic!',
 		date: new Date()
 	});
+
+	var host = window.document.location.host.replace(/:.*/, '');
+	var ws = 'ws://' + host + ':8080/messages';
+	var socket = io.connect(ws);
+	socket.on('chat', function(data) {
+		$scope.log.push(data);
+		$scope.$apply();
+	});
+
 	$scope.post = function(text) {
-		$scope.log.push({
+		socket.emit('post', {
 			from: angular.copy($scope.user),
-			text: text,
-			date: new Date()
+			text: text
 		});
 		$scope.text = '';
 	};
