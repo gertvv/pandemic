@@ -1,4 +1,90 @@
 {
+  "map": {
+    "url": "img/map.jpg",
+    "width": 1024,
+    "height": 724
+  },
+  "research-center-count": 6,
+  "max-outbreaks": 7,
+  "outbreak-marker-size": { "width": 50, "height": 50 },
+  "outbreak-markers":
+    [
+      {
+        "x": 27,
+        "y": 279
+      },
+      {
+        "x": 75,
+        "y": 309
+      },
+      {
+        "x": 27,
+        "y": 333 
+      },
+      {
+        "x": 75,
+        "y": 363
+      },
+      {
+        "x": 27,
+        "y": 392 
+      },
+      {
+        "x": 75,
+        "y": 418 
+      },
+      {
+        "x": 27,
+        "y": 451 
+      },
+      {
+        "x": 75,
+        "y": 472
+      },
+      {
+        "x": 27,
+        "y": 511
+      },
+    ],
+  "infection-rate-marker-size": { "width": 50, "height": 50 },
+  "infection-rate-levels":
+    [
+      {
+        "rate": 2,
+        "x": 395,
+        "y": 538
+      },
+      {
+        "rate": 2,
+        "x": 445,
+        "y": 538
+      },
+      {
+        "rate": 2,
+        "x": 494,
+        "y": 538
+      },
+      {
+        "rate": 3,
+        "x": 544,
+        "y": 538
+      },
+      {
+        "rate": 3,
+        "x": 593,
+        "y": 538
+      },
+      {
+        "rate": 4,
+        "x": 643,
+        "y": 538
+      },
+      {
+        "rate": 4,
+        "x": 692,
+        "y": 538
+      }
+    ],
   "roles": [
     {
       "name": "Dispatcher",
@@ -21,24 +107,60 @@
       "color": "#ab7845"
     }
   ],
+  "specials": [
+    {
+      "name": "Resilient Population",
+      "description": "Take a card from the Infection Discard Pile and remove it from the game."
+    },
+    {
+      "name": "Government Grant",
+      "description": "Add a Research Station to any city for free."
+    },
+    {
+      "name": "One Quiet Night",
+      "description": "Skip the next infection phase entirely."
+    },
+    {
+      "name": "Airlift",
+      "description": "Move a player to any city for free."
+    },
+    {
+      "name": "Forecast",
+      "description": "Examine the top 6 cards from the Infection Draw Pile and rearrange them in the order of your choice."
+    }
+  ],
+  "disease-marker-size": { "width": 40, "height": 40 },
   "diseases": [
     {
       "name": "Blue",
-      "color": "#1d61ce"
+      "color": "#1d61ce",
+      "cubes": 24,
+      "x": 735,
+      "y": 87
     },
     {
       "name": "Yellow",
-      "color": "#f6d633"
+      "color": "#f6d633",
+      "cubes": 24,
+      "x": 796,
+      "y": 87
     },
     {
       "name": "Black",
-      "color": "#363636"
+      "color": "#363636",
+      "cubes": 24,
+      "x": 857,
+      "y": 87
     },
     {
       "name": "Red",
-      "color": "#c21b08"
+      "color": "#c21b08",
+      "cubes": 24,
+      "x": 918,
+      "y": 87
     }
   ],
+  "city-marker-size": { "width": 27, "height": 27 },
   "cities": [
     {
       "name": "San Francisco",
