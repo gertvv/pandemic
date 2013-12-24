@@ -5,6 +5,7 @@
     "express": "3.x",
     "socket.io": "*",
     "cookie": "*",
-    "underscore": "1.5.x"
+    "underscore": "1.5.x",
+    "randy": "1.4.2"
   }
 }
