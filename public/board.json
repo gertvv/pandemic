@@ -7,8 +7,7 @@
   "research-center-count": 6,
   "max-outbreaks": 7,
   "outbreak-marker-size": { "width": 50, "height": 50 },
-  "outbreak-markers":
-    [
+  "outbreak-markers": [
       {
         "x": 27,
         "y": 279
@@ -47,8 +46,7 @@
       },
     ],
   "infection-rate-marker-size": { "width": 50, "height": 50 },
-  "infection-rate-levels":
-    [
+  "infection-rate-levels": [
       {
         "rate": 2,
         "x": 395,
@@ -109,23 +107,28 @@
   ],
   "specials": [
     {
-      "name": "Resilient Population",
+      "name": "special-resilient-population"
+      "title": "Resilient Population",
       "description": "Take a card from the Infection Discard Pile and remove it from the game."
     },
     {
-      "name": "Government Grant",
+      "name": "special-government-grant",
+      "title": "Government Grant",
       "description": "Add a Research Station to any city for free."
     },
     {
-      "name": "One Quiet Night",
+      "name": "special-one-quiet-night",
+      "title": "One Quiet Night",
       "description": "Skip the next infection phase entirely."
     },
     {
-      "name": "Airlift",
+      "name": "special-airlift",
+      "title": "Airlift",
       "description": "Move a player to any city for free."
     },
     {
-      "name": "Forecast",
+      "name": "special-forecast",
+      "title": "Forecast",
       "description": "Examine the top 6 cards from the Infection Draw Pile and rearrange them in the order of your choice."
     }
   ],
