@@ -43,7 +43,7 @@
       {
         "x": 27,
         "y": 511
-      },
+      }
     ],
   "infection-rate-marker-size": { "width": 50, "height": 50 },
   "infection-rate-levels": [
@@ -107,7 +107,7 @@
   ],
   "specials": [
     {
-      "name": "special-resilient-population"
+      "name": "special-resilient-population",
       "title": "Resilient Population",
       "description": "Take a card from the Infection Discard Pile and remove it from the game."
     },
