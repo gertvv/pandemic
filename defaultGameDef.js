@@ -1,4 +1,4 @@
-{
+module.exports = {
   "map": {
     "url": "img/map.jpg",
     "width": 1024,
@@ -83,6 +83,7 @@
         "y": 538
       }
     ],
+  "initial-infections": [ 3, 3, 3, 2, 2, 2, 1, 1, 1 ];
   "roles": [
     {
       "name": "Dispatcher",
@@ -163,8 +164,9 @@
       "y": 87
     }
   ],
-  "city-marker-size": { "width": 27, "height": 27 },
-  "cities": [
+  "location-marker-size": { "width": 27, "height": 27 },
+  "starting_location": "Atlanta",
+  "locations": [
     {
       "name": "San Francisco",
       "disease": "Blue",
@@ -458,7 +460,7 @@
     ["San Francisco", "Chicago"],
     ["San Francisco", "Tokyo"],
     ["San Francisco", "Manila"],
-    ["san Francisco", "Los Angeles"],
+    ["San Francisco", "Los Angeles"],
     ["Chicago", "Atlanta"],
     ["Chicago", "Toronto"],
     ["Chicago", "Los Angeles"],
@@ -533,11 +535,11 @@
     ["Jakarta", "Bangkok"],
     ["Bangkok", "Ho Chi Minh"],
     ["Bangkok", "Hong Kong"],
-    ["Ho Chi Minh", "Manilla"],
+    ["Ho Chi Minh", "Manila"],
     ["Ho Chi Minh", "Hong Kong"],
-    ["Manilla", "Sydney"],
-    ["Manilla", "Taipei"],
-    ["Hong Kong", "Shainghai"],
+    ["Manila", "Sydney"],
+    ["Manila", "Taipei"],
+    ["Hong Kong", "Shanghai"],
     ["Hong Kong", "Taipei"],
     ["Shanghai", "Taipei"],
     ["Shanghai", "Tokyo"],
@@ -548,4 +550,4 @@
     ["Tokyo", "Osaka"],
     ["Osaka", "Taipei"]
   ]
-}
+};

@@ -49,8 +49,18 @@ function initializeGame(input) {
       return _.extend(_.clone(location), { "adjacent": [] });
     });
   _.each(input.routes, function(route) {
-    _.find(output.locations, nameMatcher(route[0])).adjacent.push(route[1]); 
-    _.find(output.locations, nameMatcher(route[1])).adjacent.push(route[0]); 
+    var location0 = _.find(output.locations, nameMatcher(route[0]));
+    if (location0) {
+      location0.adjacent.push(route[1]); 
+    } else {
+      throw "Location " + route[0] + " not found.";
+    }
+    var location1 = _.find(output.locations, nameMatcher(route[1]));
+    if (location1) {
+      location1.adjacent.push(route[0]); 
+    } else {
+      throw "Location " + route[1] + " not found.";
+    }
   });
 
   return output;
