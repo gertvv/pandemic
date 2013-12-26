@@ -110,6 +110,18 @@ function Game(gameDef, players, settings, eventSink, randy) {
         });
       });
     });
+
+    // Give turn to first player
+    this.situation.state = {
+      "name": "player_actions",
+      "player": self.situation.players[0].id,
+      "actions_remaining": 4
+    };
+
+    eventSink.emit({
+      "event_type": "state_change",
+      "state": _.clone(this.situation.state)
+    });
   };
   return this;
 }

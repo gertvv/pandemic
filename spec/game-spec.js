@@ -333,5 +333,22 @@ describe("Game", function() {
       expectDraw(players[1], cards[7]);
       expectDraw(players[2], cards[8]);
     });
+
+    it("should give the first player a turn", function() {
+      spyOn(emitter, "emit");
+      var players = ["7aBf9", "UIyVz", "xiv9U"];
+      var game = new Game(gameDef, players, { "number_of_epidemics": 4 }, emitter, randy);
+      game.setup();
+
+      var lastCall = emitter.emit.calls[emitter.emit.calls.length - 1];
+      expect(lastCall.args[0]).toEqual({
+        "event_type": "state_change",
+        "state": {
+          "name": "player_actions",
+          "player": "7aBf9",
+          "actions_remaining": 4
+        }
+      });
+    });
   });
 });
