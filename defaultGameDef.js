@@ -4,10 +4,10 @@ module.exports = {
     "width": 1024,
     "height": 724
   },
-  "research-center-count": 6,
-  "max-outbreaks": 7,
-  "outbreak-marker-size": { "width": 50, "height": 50 },
-  "outbreak-markers": [
+  "research_centers_available": 6,
+  "max_outbreaks": 7,
+  "outbreak_marker_size": { "width": 50, "height": 50 },
+  "outbreak_markers": [
       {
         "x": 27,
         "y": 279
@@ -45,8 +45,8 @@ module.exports = {
         "y": 511
       }
     ],
-  "infection-rate-marker-size": { "width": 50, "height": 50 },
-  "infection-rate-levels": [
+  "infection_rate_marker_size": { "width": 50, "height": 50 },
+  "infection_rate_levels": [
       {
         "rate": 2,
         "x": 395,
@@ -83,7 +83,8 @@ module.exports = {
         "y": 538
       }
     ],
-  "initial-infections": [ 3, 3, 3, 2, 2, 2, 1, 1, 1 ];
+  "initial_infections": [ 3, 3, 3, 2, 2, 2, 1, 1, 1 ],
+  "initial_player_cards": { 2: 4, 3: 3, 4: 2 },
   "roles": [
     {
       "name": "Dispatcher",
@@ -108,32 +109,32 @@ module.exports = {
   ],
   "specials": [
     {
-      "name": "special-resilient-population",
+      "name": "special_resilient_population",
       "title": "Resilient Population",
       "description": "Take a card from the Infection Discard Pile and remove it from the game."
     },
     {
-      "name": "special-government-grant",
+      "name": "special_government_grant",
       "title": "Government Grant",
       "description": "Add a Research Station to any city for free."
     },
     {
-      "name": "special-one-quiet-night",
+      "name": "special_one_quiet_night",
       "title": "One Quiet Night",
       "description": "Skip the next infection phase entirely."
     },
     {
-      "name": "special-airlift",
+      "name": "special_airlift",
       "title": "Airlift",
       "description": "Move a player to any city for free."
     },
     {
-      "name": "special-forecast",
+      "name": "special_forecast",
       "title": "Forecast",
       "description": "Examine the top 6 cards from the Infection Draw Pile and rearrange them in the order of your choice."
     }
   ],
-  "disease-marker-size": { "width": 40, "height": 40 },
+  "disease_marker_size": { "width": 40, "height": 40 },
   "diseases": [
     {
       "name": "Blue",
@@ -164,7 +165,7 @@ module.exports = {
       "y": 87
     }
   ],
-  "location-marker-size": { "width": 27, "height": 27 },
+  "location_marker_size": { "width": 27, "height": 27 },
   "starting_location": "Atlanta",
   "locations": [
     {
