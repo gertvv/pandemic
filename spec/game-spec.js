@@ -41,9 +41,6 @@ describe("Game", function() {
       expect(firstEvent.name).toEqual("initial_state");
       expect(firstEvent.state.players).toEqual(
           [ { "id": "7aBf9", "role": "Medic" }, { "id": "UIyVz", "role": "Scientist" } ]);
-      //expect(randy.shuffle).toHaveBeenCalledWith(gameDef.player_cards_draw);
-      //expect(randy.shuffle).toHaveBeenCalledWith(gameDef.infection_cards_draw);
-      //expect(randy.randInt.callCount).toEqual(4);
     });
 
     it("should shuffle infection cards", function() {
@@ -227,6 +224,33 @@ describe("Game", function() {
       var firstEvent = emitter.emit.calls[0].args[0];
       expect(firstEvent.name).toEqual("initial_state");
       expect(firstEvent.state.player_cards_draw).toEqual(expected)
+    });
+
+    it("should copy game definition to initial state", function() {
+      var expectedState = _.clone(gameDef);
+      expectedState.players = 
+        [ { "id": "7aBf9", "role": "Medic" }, { "id": "UIyVz", "role": "Scientist" } ];
+      expectedState.infection_cards_draw = _.clone(gameDef.infection_cards_draw).reverse();
+      var epidemic = { "type": "epidemic" };
+      var cards = _.clone(gameDef.player_cards_draw).reverse();
+      expectedState.player_cards_draw =
+        cards.slice(0, 8)
+        .concat([epidemic])
+        .concat(cards.slice(8, 20))
+        .concat([epidemic])
+        .concat(cards.slice(20, 31))
+        .concat([epidemic])
+        .concat(cards.slice(31, 42))
+        .concat([epidemic])
+        .concat(cards.slice(42, 53));
+
+      spyOn(emitter, "emit");
+      var game = new Game(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 }, emitter, randy);
+      game.setup();
+      expect(emitter.emit).toHaveBeenCalled();
+      var firstEvent = emitter.emit.calls[0].args[0];
+      expect(firstEvent.name).toEqual("initial_state");
+      expect(firstEvent.state).toEqual(expectedState);
     });
   });
 

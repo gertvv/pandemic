@@ -2,7 +2,7 @@ var _ = require('underscore');
 
 function Game(gameDef, players, settings, eventSink, randy) {
   this.setup = function() {
-    var initialState = {};
+    var initialState = _.clone(gameDef);
 
     // assign roles
     var roles = _.map(gameDef.roles, function(role) { return role.name; });
