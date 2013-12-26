@@ -2,13 +2,22 @@ var _ = require('underscore');
 
 function Game(gameDef, players, settings, eventSink, randy) {
   this.setup = function() {
-    var initialState = _.clone(gameDef);
+    var initialState = _.extend(_.clone(gameDef), settings);
 
     // assign roles
     var roles = _.map(gameDef.roles, function(role) { return role.name; });
     roles = randy.sample(roles, players.length);
     initialState.players = _.map(_.zip(players, roles),
-        function(arr) { return _.object(["id", "role"], arr); });
+        function(arr) {
+          var player = _.object(["id", "role"], arr);
+          player.location = gameDef.starting_location;
+          player.hand = [];
+          return player;
+        });
+
+    // create initial research center
+    initialState.research_centers.push({ "location": gameDef.starting_location });
+    initialState.research_centers_available--;
 
     // shuffle infection cards
     initialState.infection_cards_draw = randy.shuffle(gameDef.infection_cards_draw);
@@ -45,8 +54,10 @@ function Game(gameDef, players, settings, eventSink, randy) {
         }, cards.slice(0, nReserved));
     }
     initialState.player_cards_draw = setupPlayerCards();
+    initialState.state = { "name": "setup", "terminal": false };
 
-    eventSink.emit({ "name": "initial_state", "state": initialState });
+    // Make the initial state known
+    eventSink.emit({ "event_type": "initial_situation", "situation": initialState });
   };
   return this;
 }
