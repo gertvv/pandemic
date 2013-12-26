@@ -1,6 +1,23 @@
 var _ = require('underscore');
 
+function nameMatcher(name) {
+  return function(arg) {
+    return arg.name == name;
+  };
+}
+
 function Game(gameDef, players, settings, eventSink, randy) {
+  this.situation = null;
+
+  this.findDisease = function(diseaseName) {
+    return _.find(this.situation.diseases, nameMatcher(diseaseName));
+  }
+
+  this.findDiseaseByLocation = function(locationName) {
+    var diseaseName = _.find(this.situation.locations, nameMatcher(locationName)).disease;
+    return this.findDisease(diseaseName);
+  }
+
   this.setup = function() {
     var initialState = _.extend(_.clone(gameDef), settings);
 
@@ -58,6 +75,28 @@ function Game(gameDef, players, settings, eventSink, randy) {
 
     // Make the initial state known
     eventSink.emit({ "event_type": "initial_situation", "situation": initialState });
+
+    this.situation = _.clone(initialState);
+    var self = this;
+    _.each(_.keys(this.situation), function(key) {
+      self.situation[key] = _.clone(self.situation[key]);
+    });
+
+    // Initial infections
+    _.each(initialState.initial_infections, function(n) {
+      var card = self.situation.infection_cards_draw.shift();
+      self.situation.infection_cards_discard.unshift(card);
+      eventSink.emit({
+        "event_type": "draw_and_discard_infection_card",
+        "card": card
+      });
+      eventSink.emit({
+        "event_type": "infect",
+        "location": card.location,
+        "disease": self.findDiseaseByLocation(card.location).name,
+        "number": n
+      });
+    });
   };
   return this;
 }

@@ -270,5 +270,41 @@ describe("Game", function() {
       expect(firstEvent.event_type).toEqual("initial_situation");
       expect(firstEvent.situation).toEqual(expectedState);
     });
+
+    it("should carry out initial infections", function() {
+      spyOn(emitter, "emit");
+      var game = new Game(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 }, emitter, randy);
+      game.setup();
+
+      var cards = _.clone(gameDef.infection_cards_draw).reverse();
+      function disease(name) {
+        return _.find(gameDef.locations,
+          function(location) { return location.name == name; })
+          .disease;
+      }
+
+      function expectInfection(card, number) {
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "draw_and_discard_infection_card",
+          "card": card
+        });
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "infect",
+          "location": card.location,
+          "disease": disease(card.location),
+          "number": number
+        });
+      }
+
+      expectInfection(cards[0], 3);
+      expectInfection(cards[1], 3);
+      expectInfection(cards[2], 3);
+      expectInfection(cards[3], 2);
+      expectInfection(cards[4], 2);
+      expectInfection(cards[5], 2);
+      expectInfection(cards[6], 1);
+      expectInfection(cards[7], 1);
+      expectInfection(cards[8], 1);
+    });
   });
 });
