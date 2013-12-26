@@ -6,6 +6,7 @@
     "socket.io": "*",
     "cookie": "*",
     "underscore": "1.5.x",
-    "randy": "1.4.2"
+    "randy": "1.4.2",
+    "clone": "0.1.11"
   }
 }

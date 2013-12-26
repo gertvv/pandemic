@@ -306,5 +306,32 @@ describe("Game", function() {
       expectInfection(cards[7], 1);
       expectInfection(cards[8], 1);
     });
+
+    it("should deal initial cards to players", function() {
+      spyOn(emitter, "emit");
+      var players = ["7aBf9", "UIyVz", "xiv9U"];
+      var game = new Game(gameDef, players, { "number_of_epidemics": 4 }, emitter, randy);
+      game.setup();
+
+      var cards = _.clone(gameDef.player_cards_draw).reverse();
+
+      function expectDraw(player, card) {
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "draw_player_card",
+          "player": player,
+          "card": card
+        });
+      }
+
+      expectDraw(players[0], cards[0]);
+      expectDraw(players[1], cards[1]);
+      expectDraw(players[2], cards[2]);
+      expectDraw(players[0], cards[3]);
+      expectDraw(players[1], cards[4]);
+      expectDraw(players[2], cards[5]);
+      expectDraw(players[0], cards[6]);
+      expectDraw(players[1], cards[7]);
+      expectDraw(players[2], cards[8]);
+    });
   });
 });

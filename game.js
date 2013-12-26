@@ -1,4 +1,5 @@
 var _ = require('underscore');
+var clone = require('clone');
 
 function nameMatcher(name) {
   return function(arg) {
@@ -19,7 +20,7 @@ function Game(gameDef, players, settings, eventSink, randy) {
   }
 
   this.setup = function() {
-    var initialState = _.extend(_.clone(gameDef), settings);
+    var initialState = _.extend(clone(gameDef), settings);
 
     // assign roles
     var roles = _.map(gameDef.roles, function(role) { return role.name; });
@@ -76,11 +77,8 @@ function Game(gameDef, players, settings, eventSink, randy) {
     // Make the initial state known
     eventSink.emit({ "event_type": "initial_situation", "situation": initialState });
 
-    this.situation = _.clone(initialState);
+    this.situation = clone(initialState);
     var self = this;
-    _.each(_.keys(this.situation), function(key) {
-      self.situation[key] = _.clone(self.situation[key]);
-    });
 
     // Initial infections
     _.each(initialState.initial_infections, function(n) {
@@ -90,11 +88,26 @@ function Game(gameDef, players, settings, eventSink, randy) {
         "event_type": "draw_and_discard_infection_card",
         "card": card
       });
+      // TODO: increment infection counters
       eventSink.emit({
         "event_type": "infect",
         "location": card.location,
         "disease": self.findDiseaseByLocation(card.location).name,
         "number": n
+      });
+    });
+
+    // Initial draws
+    var nDraw = gameDef.initial_player_cards[players.length];
+    _.each(_.range(nDraw), function(idx) {
+      _.each(self.situation.players, function(player) {
+        var card = self.situation.player_cards_draw.shift();
+        player.hand.push(card);
+        eventSink.emit({
+          "event_type": "draw_player_card",
+          "player": player.id,
+          "card": card
+        });
       });
     });
   };
