@@ -96,7 +96,8 @@ describe("initializeGame", function() {
       {
         "name": "San Francisco",
         "disease": "Blue",
-        "adjacent": []
+        "adjacent": [],
+        "infections": {}
       }]);
 
     expect(bareInput.locations).toEqual([
@@ -114,12 +115,14 @@ describe("initializeGame", function() {
       {
         "name": "San Francisco",
         "disease": "Blue",
-        "adjacent": [ "Los Angeles" ]
+        "adjacent": [ "Los Angeles" ],
+        "infections": {}
       },
       {
         "name": "Los Angeles",
         "disease": "Yellow",
-        "adjacent": [ "San Francisco" ]
+        "adjacent": [ "San Francisco" ],
+        "infections": {}
       }]);
 
     bareInput.locations.push({ "name": "London", "disease": "Blue" });
@@ -127,17 +130,20 @@ describe("initializeGame", function() {
       {
         "name": "San Francisco",
         "disease": "Blue",
-        "adjacent": [ "Los Angeles" ]
+        "adjacent": [ "Los Angeles" ],
+        "infections": {}
       },
       {
         "name": "Los Angeles",
         "disease": "Yellow",
-        "adjacent": [ "San Francisco" ]
+        "adjacent": [ "San Francisco" ],
+        "infections": {}
       },
       {
         "name": "London",
         "disease": "Blue",
-        "adjacent": []
+        "adjacent": [],
+        "infections": {}
       }]);
 
     bareInput.locations.push({ "name": "Mexico City", "disease": "Yellow" });
@@ -146,24 +152,51 @@ describe("initializeGame", function() {
       {
         "name": "San Francisco",
         "disease": "Blue",
-        "adjacent": [ "Los Angeles" ]
+        "adjacent": [ "Los Angeles" ],
+        "infections": {}
       },
       {
         "name": "Los Angeles",
         "disease": "Yellow",
-        "adjacent": [ "San Francisco", "Mexico City" ]
+        "adjacent": [ "San Francisco", "Mexico City" ],
+        "infections": {}
       },
       {
         "name": "London",
         "disease": "Blue",
-        "adjacent": []
+        "adjacent": [],
+        "infections": {}
       },
       {
         "name": "Mexico City",
         "disease": "Yellow",
-        "adjacent": [ "Los Angeles" ]
+        "adjacent": [ "Los Angeles" ],
+        "infections": {}
       }
       ]);
+  });
+
+  it("should add infection counters for each disease", function() {
+    bareInput.locations.push({ "name": "San Francisco", "disease": "Blue" });
+    bareInput.diseases.push({ "name": "Blue" });
+
+    expect(initializeGame(bareInput).locations).toEqual([
+      {
+        "name": "San Francisco",
+        "disease": "Blue",
+        "adjacent": [],
+        "infections": { "Blue": 0 }
+      }]);
+
+    bareInput.diseases.push({ "name": "Red" });
+
+    expect(initializeGame(bareInput).locations).toEqual([
+      {
+        "name": "San Francisco",
+        "disease": "Blue",
+        "adjacent": [],
+        "infections": { "Blue": 0, "Red": 0 }
+      }]);
   });
 
   // TODO: initializeGame could also sanity-check the input

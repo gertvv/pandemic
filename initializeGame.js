@@ -44,9 +44,11 @@ function initializeGame(input) {
     });
 
   // Add adjacency to locations
+  var infections =
+    _.object(_.pluck(input.diseases, 'name'), _.times(input.diseases.length, function(x) { return 0; }));
   output.locations = _.map(input.locations,
     function(location) {
-      return _.extend(_.clone(location), { "adjacent": [] });
+      return _.extend(_.clone(location), { "adjacent": [], "infections": infections });
     });
   _.each(input.routes, function(route) {
     var location0 = _.find(output.locations, nameMatcher(route[0]));
