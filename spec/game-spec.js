@@ -490,5 +490,21 @@ describe("Game", function() {
       // Then transition back to drawing player cards
       expectDrawState("7aBf9", 1);
     });
+
+    it("transitions to infection directly after epidemic on second draw", function() {
+      var nInfections = gameDef.infection_cards_draw.length;
+      randy.randInt = function(min, max) { return min + 1 };
+      game.setup();
+      skipTurnActions("7aBf9");
+
+      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+
+      spyOn(emitter, 'emit').andCallThrough();
+      // Drawing an epidemic
+      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+      expectDraw("7aBf9", { "type": "epidemic" });
+      expect(game.act("7aBf9", { "name": "increase_infection_intensity" })).toBeTruthy();
+      expectInfectionState("7aBf9", 2);
+    });
   });
 });
