@@ -30,25 +30,28 @@ describe("Game", function() {
     });
   }
 
-  function disease(name) {
+  function findLocation(name) {
     return _.find(gameDef.locations,
-      function(location) { return location.name == name; })
-      .disease;
+      function(location) { return location.name == name; });
   }
 
-  function expectOutbreak(card) {
+  function findDisease(name) {
+    return findLocation(name).disease;
+  }
+
+  function expectOutbreak(location, disease) {
     expect(emitter.emit).toHaveBeenCalledWith({
       "event_type": "outbreak",
-      "location": card.location,
-      "disease": disease(card.location)
+      "location": location,
+      "disease": disease
     });
   }
 
-  function expectInfection(card, number) {
+  function expectInfection(location, disease, number) {
     expect(emitter.emit).toHaveBeenCalledWith({
       "event_type": "infect",
-      "location": card.location,
-      "disease": disease(card.location),
+      "location": location,
+      "disease": disease,
       "number": number
     });
   }
@@ -58,7 +61,7 @@ describe("Game", function() {
       "event_type": "draw_and_discard_infection_card",
       "card": card
     });
-    expectInfection(card, number);
+    expectInfection(card.location, findDisease(card.location), number);
   }
   
   describe(".setup()", function() {
@@ -551,9 +554,144 @@ describe("Game", function() {
 
       spyOn(emitter, 'emit').andCallThrough();
       expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
-      expectOutbreak(gameDef.infection_cards_draw[nInfections - 1]);
-      // expectInfection(...)
+      var origin = gameDef.infection_cards_draw[nInfections - 1].location;
+      var disease = findDisease(origin);
+      expectOutbreak(origin, disease);
+
+      // The rest of the test specific for the test data
+      // Some sanity asserts here
+      expect(origin).toBe("Kinshasa"); 
+      expect(disease).toBe("Yellow");
+      expectInfection("Lagos", disease, 1);
+      expectInfection("Johannesburg", disease, 1);
+      expectInfection("Khartoum", disease, 1);
       expectInfectionState("7aBf9", 1);
+    });
+
+    it("handles chain reactions", function() {
+      _.each(gameDef.diseases, function(disease) {
+        disease.cubes = 1000;
+      });
+      var nInfections = gameDef.infection_cards_draw.length;
+      game.setup();
+      randy.shuffle = function(x) { return _.clone(x).reverse(); }
+
+      skipTurnActions("7aBf9");
+
+      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act("7aBf9", { "name": "increase_infection_intensity" })).toBeTruthy();
+      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+
+      spyOn(emitter, 'emit').andCallThrough();
+      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+
+      // Starting situation:
+      // 3: San Francisco, Chicago, Toronto
+      // 2: Atlanta, New York, Washington DC
+      // 1: London, Madrid, Essen
+
+      var events = _.map(emitter.emit.calls, function(call) {
+        return call.args[0];
+      });
+      var expectedEvents = [
+        { "event_type": "draw_and_discard_infection_card",
+          "card": gameDef.infection_cards_draw[0] },
+        { "event_type": "outbreak",
+          "location": "San Francisco",
+          "disease": "Blue" },
+        { "event_type": "infect",
+          "location": "Tokyo",
+          "disease": "Blue",
+          "number": 1 },
+        { "event_type": "infect",
+          "location": "Manila",
+          "disease": "Blue",
+          "number": 1 },
+        { "event_type": "infect",
+          "location": "Los Angeles",
+          "disease": "Blue",
+          "number": 1 },
+        { "event_type": "outbreak",
+          "location": "Chicago",
+          "disease": "Blue" },
+        { "event_type": "infect",
+          "location": "Los Angeles",
+          "disease": "Blue",
+          "number": 1 },
+        { "event_type": "infect",
+          "location": "Mexico City",
+          "disease": "Blue",
+          "number": 1 },
+        { "event_type": "infect",
+          "location": "Atlanta",
+          "disease": "Blue",
+          "number": 1 },
+        { "event_type": "outbreak",
+          "location": "Toronto",
+          "disease": "Blue" },
+        { "event_type": "infect",
+          "location": "Washington DC",
+          "disease": "Blue",
+          "number": 1 },
+        { "event_type": "infect",
+          "location": "New York",
+          "disease": "Blue",
+          "number": 1 },
+        { "event_type": "state_change",
+          "state": {
+            "name": "draw_infection_cards",
+            "player": "7aBf9",
+            "draws_remaining": 1,
+            "terminal": false
+          }
+        }];
+
+      _.each(expectedEvents, function(expectedEvent) {
+        expect(events).toContain(expectedEvent);
+        var event = _.find(events, function(e) { return _.isEqual(e, expectedEvent); });
+        events.splice(_.indexOf(events, event), 1);
+      });
+      expect(events).toEqual([]);
+      
+      // Current situation: 3 outbreaks
+      // 3: San Francisco, Chicago, Toronto, Atlanta, New York, Washington DC
+      // 2: Los Angeles
+      // 1: London, Madrid, Essen, Tokyo, Manila, Mexico City
+    });
+
+    it("detects defeat by too many outbreaks", function() {
+      _.each(gameDef.diseases, function(disease) {
+        disease.cubes = 1000;
+      });
+      var nInfections = gameDef.infection_cards_draw.length;
+      game.setup();
+      randy.shuffle = function(x) { return _.clone(x).reverse(); }
+
+      skipTurnActions("7aBf9");
+
+      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act("7aBf9", { "name": "increase_infection_intensity" })).toBeTruthy();
+      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+
+      spyOn(emitter, "emit").andCallThrough();
+      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+      // Current situation: 3 outbreaks
+      // 3: San Francisco, Chicago, Toronto, Atlanta, New York, Washington DC
+      // 2: Los Angeles
+      // 1: London, Madrid, Essen, Tokyo, Manila, Mexico City
+      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+      expect(emitter.emit).toHaveBeenCalledWith({
+        "event_type": "state_change",
+        "state": {
+          "name": "defeat_too_many_outbreaks",
+          "terminal": true
+        }
+      });
+
+      var outbreaks = _.filter(emitter.emit.calls, function(call) {
+        return call.args[0].event_type === "outbreak";
+      });
+      expect(outbreaks.length).toBe(8);
     });
   });
 });
