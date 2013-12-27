@@ -11,12 +11,16 @@ function Game(gameDef, players, settings, eventSink, randy) {
   this.situation = null;
   this.parentState = null;
 
+  this.findLocation = function(locationName) {
+    return _.find(this.situation.locations, nameMatcher(locationName));
+  }
+
   this.findDisease = function(diseaseName) {
     return _.find(this.situation.diseases, nameMatcher(diseaseName));
   }
 
   this.findDiseaseByLocation = function(locationName) {
-    var diseaseName = _.find(this.situation.locations, nameMatcher(locationName)).disease;
+    var diseaseName = this.findLocation(locationName).disease;
     return this.findDisease(diseaseName);
   }
 
@@ -84,7 +88,15 @@ function Game(gameDef, players, settings, eventSink, randy) {
       "event_type": "draw_and_discard_infection_card",
       "card": card
     });
-    // TODO: increment infection counters
+    var location = this.findLocation(card.location);
+    location.infections[location.disease] += n;
+    if (location.infections[location.disease] > 3) {
+      eventSink.emit({
+        "event_type": "outbreak",
+        "location": card.location,
+        "disease": this.findDiseaseByLocation(card.location).name
+      });
+    }
     eventSink.emit({
       "event_type": "infect",
       "location": card.location,
@@ -228,10 +240,21 @@ function Game(gameDef, players, settings, eventSink, randy) {
       }
       if (this.parentState.draws_remaining > 0) {
         this.situation.state = this.parentState;
-        this.emitStateChange(this.situation.state);
+        this.emitStateChange();
       } else {
         this.startInfectionPhase(player);
       }
+      return true;
+    } else if (action.name == "draw_infection_card") {
+      if (this.situation.state.name !== "draw_infection_cards") {
+        return false;
+      }
+      if (player !== this.situation.state.player) {
+        return false;
+      }
+      this.infect(1);
+      this.situation.state.draws_remaining--;
+      this.emitStateChange();
       return true;
     }
     return false;

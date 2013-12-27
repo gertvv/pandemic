@@ -36,17 +36,29 @@ describe("Game", function() {
       .disease;
   }
 
-  function expectInfection(card, number) {
+  function expectOutbreak(card) {
     expect(emitter.emit).toHaveBeenCalledWith({
-      "event_type": "draw_and_discard_infection_card",
-      "card": card
+      "event_type": "outbreak",
+      "location": card.location,
+      "disease": disease(card.location)
     });
+  }
+
+  function expectInfection(card, number) {
     expect(emitter.emit).toHaveBeenCalledWith({
       "event_type": "infect",
       "location": card.location,
       "disease": disease(card.location),
       "number": number
     });
+  }
+
+  function expectDrawInfection(card, number) {
+    expect(emitter.emit).toHaveBeenCalledWith({
+      "event_type": "draw_and_discard_infection_card",
+      "card": card
+    });
+    expectInfection(card, number);
   }
   
   describe(".setup()", function() {
@@ -305,15 +317,15 @@ describe("Game", function() {
 
       var cards = _.clone(gameDef.infection_cards_draw).reverse();
 
-      expectInfection(cards[0], 3);
-      expectInfection(cards[1], 3);
-      expectInfection(cards[2], 3);
-      expectInfection(cards[3], 2);
-      expectInfection(cards[4], 2);
-      expectInfection(cards[5], 2);
-      expectInfection(cards[6], 1);
-      expectInfection(cards[7], 1);
-      expectInfection(cards[8], 1);
+      expectDrawInfection(cards[0], 3);
+      expectDrawInfection(cards[1], 3);
+      expectDrawInfection(cards[2], 3);
+      expectDrawInfection(cards[3], 2);
+      expectDrawInfection(cards[4], 2);
+      expectDrawInfection(cards[5], 2);
+      expectDrawInfection(cards[6], 1);
+      expectDrawInfection(cards[7], 1);
+      expectDrawInfection(cards[8], 1);
     });
 
     it("should deal initial cards to players", function() {
@@ -460,7 +472,7 @@ describe("Game", function() {
         "event_type": "infection_rate_increased"
       });
       //  - triggers an infection from the bottom infection card
-      expectInfection(gameDef.infection_cards_draw[nInfections - 1], 3);
+      expectDrawInfection(gameDef.infection_cards_draw[nInfections - 1], 3);
       //  - triggers the "epidemic" state
       expect(emitter.emit).toHaveBeenCalledWith({
         "event_type": "state_change",
@@ -505,6 +517,43 @@ describe("Game", function() {
       expectDraw("7aBf9", { "type": "epidemic" });
       expect(game.act("7aBf9", { "name": "increase_infection_intensity" })).toBeTruthy();
       expectInfectionState("7aBf9", 2);
+    });
+
+    it("handles infection", function() {
+      game.setup();
+
+      randy.shuffle = function(arr) {
+        return arr.slice(1, arr.length).concat(arr.slice(0, 1));
+      };
+
+      skipTurnActions("7aBf9");
+
+      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act("7aBf9", { "name": "increase_infection_intensity" })).toBeTruthy();
+      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+
+      spyOn(emitter, 'emit').andCallThrough();
+      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+      expectDrawInfection(gameDef.infection_cards_draw[8], 1);
+      expectInfectionState("7aBf9", 1);
+    });
+
+    it("handles outbreaks", function() {
+      var nInfections = gameDef.infection_cards_draw.length;
+      game.setup();
+      randy.shuffle = function(x) { return _.clone(x); }
+
+      skipTurnActions("7aBf9");
+
+      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act("7aBf9", { "name": "increase_infection_intensity" })).toBeTruthy();
+      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+
+      spyOn(emitter, 'emit').andCallThrough();
+      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+      expectOutbreak(gameDef.infection_cards_draw[nInfections - 1]);
+      // expectInfection(...)
+      expectInfectionState("7aBf9", 1);
     });
   });
 });
