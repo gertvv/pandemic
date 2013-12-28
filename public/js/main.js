@@ -19,6 +19,9 @@ app.factory('GameState', function() {
     if (e.event_type === "outbreak") {
       service.game.situation.outbreak_count++;
     }
+    if (e.event_type === "infection_rate_increased") {
+      service.game.situation.infection_rate_index++;
+    }
     if (e.event_type === "state_change") {
       service.game.situation.state = e.state;
     }
