@@ -1,45 +1,43 @@
 var app = angular.module('pandemic', ['ui.router', 'ngCookies']);
 
-app.factory('Board', function($http, $q) {
-  var dfd = $q.defer();
-  $http({method: 'GET', url: 'board.json'})
-    .success(function(data) {
-      dfd.resolve(data);
-    })
-    .error(function(data) {
-      dfd.reject(data);
-    });
-  return dfd.promise;
-});
-
 app.factory('GameState', function() {
-  var game, log, users, socket;
-
-  function init() {
-      game = {};
-      log = [];
-      users = [];
-      socket = null;
+  function handleGameEvent(e) {
+    if (e.event_type == "initial_situation") {
+      console.log(e);
+      service.game.state = "in progress";
+      service.game.situation = e.situation;
+    }
   }
-  init();
 
-  function setGame(game) {
+  function setGame(game, scope) {
+    $scope = scope;
     if (socket) {
-      socket.close();
+      //socket.close();
       init();
     }
     if (game) {
-      game = game;
+      service.game = game;
       var host = window.document.location.host;
       var ws = 'ws://' + host + game.ws;
       socket = io.connect(ws);
       socket.on('chat', function(data) {
-        log.push(data);
+        $scope.$apply(function() {
+          service.log.push({"type": "chat", "data": data});
+        });
+      });
+
+      socket.on('event', function(data) {
+        $scope.$apply(function() {
+          handleGameEvent(data);
+          service.log.push({"type": "event", "data": data});
+        });
       });
 
       socket.on('users', function(data) {
-        users.length = 0;
-        users.push.apply(users, data);
+        $scope.$apply(function() {
+          service.users.length = 0;
+          service.users.push.apply(service.users, data);
+        });
       });
     }
   };
@@ -54,48 +52,35 @@ app.factory('GameState', function() {
     socket.emit('start');
   };
 
-  return {
+  var service = {
     setGame: setGame,
-    game: game,
-    log: log,
-    users: users,
+    game: {},
+    log: [],
+    users: [],
     post: post,
     start: start
   };
+  var socket, $scope;
+
+  function init() {
+      service.game = {};
+      service.log = [];
+      service.users = [];
+      socket = null;
+  }
+  init();
+
+  return service;
 });
 
-app.controller('ChatCtrl', function($scope) {
+app.controller('ChatCtrl', function($scope, GameState) {
   $scope.text = '';
-  $scope.log = [];
-  $scope.users = [];
-
-  var host = window.document.location.host;
-  var ws = 'ws://' + host + $scope.game.ws;
-  var socket = io.connect(ws);
-  socket.on('chat', function(data) {
-    $scope.log.push(data);
-    $scope.$apply();
-  });
-
-  socket.on('users', function(data) {
-    $scope.users = data;
-    $scope.$apply();
-  });
-
-  $scope.post = function(text) {
-    socket.emit('post', {
-      from: angular.copy($scope.user),
-      text: text
-    });
-    $scope.text = '';
-  };
+  $scope.log = GameState.log;
+  $scope.users = GameState.users;
+  $scope.post = GameState.post;
 });
 
-app.controller('MapCtrl', function($scope, Board) {
-  $scope.cities = [];
-  Board.then(function(data) {
-    $scope.cities = data.cities;
-  });
+app.controller('MapCtrl', function($scope) {
 });
 
 app.controller('ActionsCtrl', function($scope, GameState) {
@@ -111,19 +96,20 @@ app.filter('reverse', function() {
   };
 });
 
-app.filter('diseaseColor', function(Board) {
-  var colors = {};
-  Board.then(function(data) {
-    colors = _.object(_.map(data.diseases, function(x) { return x.name; }), _.map(data.diseases, function(x) { return x.color; }));
-  });
-  return function(disease) {
-    return colors[disease] || "white";
+app.filter('diseaseColor', function(GameState) {
+  return function(diseaseName) {
+    var disease;
+    var situation = GameState.game.situation;
+    if (situation) {
+      disease = _.find(situation.diseases, function(disease) { return disease.name == diseaseName; });
+    }
+    return disease ? disease.color : "white";
   };
 });
 
 function HomeCtrl($scope, $http, $location, GameState, games) {
   $scope.games = games.data;
-  GameState.setGame(null);
+  GameState.setGame(null, $scope);
   $scope.createGame = function() {
     $http({method: 'POST', url: '/games'})
       .success(function(data) {
@@ -198,8 +184,8 @@ app.config(function($stateProvider, $urlRouterProvider) {
       }
     },
     controller: function($scope, GameState, game) {
-      $scope.game = game.data;
-      GameState.setGame($scope.game);
+      GameState.setGame(game.data, $scope);
+      $scope.game = GameState.game;
     }
   });
 });

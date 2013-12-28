@@ -1,8 +1,8 @@
 <div class="row">
   <div class="columns large-12">
-    <svg width="1024" height="724" ng-controller="MapCtrl">
-      <image x="0" y="0" width="1024" height="724" xlink:href="img/map.jpg" />
-      <rect ng-repeat="city in cities" ng-attr-x="{{city.x}}" ng-attr-y="{{city.y}}" width="27" height="27" ng-attr-style="fill:{{city.disease | diseaseColor}}" />
+    <svg width="1024" height="724" ng-if="game.situation" ng-controller="MapCtrl">
+      <image x="0" y="0" width="1024" height="724" xlink:href="{{game.situation.map.url}}" />
+      <rect ng-repeat="city in game.situation.locations" ng-attr-x="{{city.x}}" ng-attr-y="{{city.y}}" width="27" height="27" ng-attr-style="fill:{{city.disease | diseaseColor}}" />
     </svg>
   </div>
 </div>
@@ -24,18 +24,22 @@
             <div class="columns">
               <ul class="no-bullet">
                 <li ng-repeat="message in log | reverse">
-                  <span class="label secondary">
-                    {{message.date | date:'HH:mm:ss'}}
+                  <span ng-if="message.type == 'chat'">
+                    <span class="label secondary">
+                      {{message.data.date | date:'HH:mm:ss'}}
+                    </span>
+                    <span data-tooltip title="ID:{{message.data.from.id}}" class="has-tip label {{message.data.from.type}}">
+                      {{message.data.from.name}}
+                    </span>
+                    <span>{{message.data.text}}</span>
                   </span>
-                  <span data-tooltip title="ID:{{message.from.id}}" class="has-tip label {{message.from.type}}">
-                    {{message.from.name}}
+                  <span ng-if="message.type == 'event'">
+                    <span class="label system">{{message.data.event_type}}</span>
                   </span>
-                  <span>{{message.text}}</span>
                 </li>
               </ul>
             </div>
           </div>
-          <form>
             <div class="row collapse">
               <div class="columns">
                 <input type="text" ng-model="text" placeholder="Chat message..."></input>
@@ -51,7 +55,7 @@
       </div>
     </div>
   </div>
-  <div class="columns large-4" ng-controller="ActionsCtrl">
+  <div class="columns large-4" ng-controller="ActionsCtrl" ng-if="game.state == 'lobby'">
     <button class="button"
       ng-click="startGame()"
       ng-disabled="user.id != game.owner || users.length < 2 || users.length > 4"

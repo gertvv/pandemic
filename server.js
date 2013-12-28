@@ -3,7 +3,10 @@ var express = require('express'),
   server = require('http').createServer(app),
   io = require('socket.io').listen(server),
   cookie = require('cookie'),
-  _ = require('underscore');
+  _ = require('underscore'),
+  Game = require('./game'),
+  randy = require('randy'),
+  gameDef = require('./initializeGame')(require('./defaultGameDef'));
 
 
 app.use(express.static(__dirname + '/public'));
@@ -91,8 +94,12 @@ function createWS(game) {
       });
       socket.on('start', function() {
         if (game.owner === userId) {
-          game.state = 'setup';
-          socket.emit('chat', { from: { 'name': 'Pandemic', 'type': 'system' }, text: 'The game is starting!', date: Date.now() });
+          game.state = 'in progress';
+          var emitter = {
+            emit: function(e) { socket.emit('event', e); }
+          }
+          var theGame = new Game(gameDef, game.activeUsers, { "number_of_epidemics": 4 }, emitter, randy);
+          theGame.setup();
         }
       });
       socket.on('disconnect', function() {
