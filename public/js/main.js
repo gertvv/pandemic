@@ -2,17 +2,22 @@ var app = angular.module('pandemic', ['ui.router', 'ngCookies']);
 
 app.factory('GameState', function() {
   function handleGameEvent(e) {
-    if (e.event_type == "initial_situation") {
+    if (e.event_type === "initial_situation") {
       console.log(e);
       service.game.state = "in progress";
       service.game.situation = e.situation;
     }
-    if (e.event_type == "infect") {
+    if (e.event_type === "infect") {
       var location = _.find(service.game.situation.locations,
         function(location) { return location.name === e.location; });
       location.infections[e.disease]++;
+      var disease = _.find(service.game.situation.diseases,
+        function(disease) { return disease.name === e.disease; });
+      disease.cubes--;
       $scope.$broadcast("updateInfections", location.name);
-      console.log(location);
+    }
+    if (e.event_type === "state_change") {
+      service.game.situation.state = e.state;
     }
   }
 
@@ -55,6 +60,10 @@ app.factory('GameState', function() {
     });
   };
 
+  function act(action) {
+    socket.emit('act', action);
+  };
+
   function start() {
     socket.emit('start');
   };
@@ -65,7 +74,8 @@ app.factory('GameState', function() {
     log: [],
     users: [],
     post: post,
-    start: start
+    start: start,
+    act: act
   };
   var socket, $scope;
 
@@ -90,11 +100,26 @@ app.controller('ChatCtrl', function($scope, GameState) {
 app.controller('MapCtrl', function($scope) {
 });
 
-app.controller('ActionsCtrl', function($scope, GameState) {
+app.controller('LobbyCtrl', function($scope, GameState) {
   $scope.users = GameState.users;
   $scope.startGame = function() {
     GameState.start();
   }
+});
+
+app.controller('ActionsCtrl', function($scope, GameState) {
+  $scope.pass = function() {
+    GameState.act({ "name": "action_pass" });
+  };
+  $scope.drawPlayerCard = function() {
+    GameState.act({ "name": "draw_player_card" });
+  };
+  $scope.drawInfectionCard = function() {
+    GameState.act({ "name": "draw_infection_card" });
+  };
+  $scope.increaseInfectionIntensity = function() {
+    GameState.act({ "name": "increase_infection_intensity" });
+  };
 });
 
 app.filter('reverse', function() {
@@ -114,10 +139,19 @@ app.filter('diseaseColor', function(GameState) {
   };
 });
 
+app.directive('pandemicEvent', function(GameState) {
+  return {
+    restrict: 'E',
+    scope: {
+      event: '='
+    },
+    templateUrl: 'partials/event.html'
+  };
+});
+
 app.directive('infectionsMarker', function(GameState) {
   return {
     restrict: 'E',
-    transclude: true,
     replace: true,
     scope: {
       location: '='

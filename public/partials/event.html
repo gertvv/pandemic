@@ -1,0 +1,44 @@
+<span ng-switch="event.event_type">
+  <span class="label system">Pandemic</span>
+  <span ng-switch-when="state_change">
+    <span ng-switch="event.state.name">
+      <span ng-switch-when="player_actions">
+        {{event.state.player}} has {{event.state.actions_remaining}} actions remaining.
+      </span>
+      <span ng-switch-when="draw_player_cards">
+        {{event.state.player}} has {{event.state.draws_remaining}} card draws remaining.
+      </span>
+      <span ng-switch-when="draw_infection_cards">
+        {{event.state.player}} has {{event.state.draws_remaining}} infection draws remaining.
+      </span>
+      <span ng-switch-when="epidemic">
+        An epidemic is in progress!
+      </span>
+      <span ng-switch-default>
+        State change: {{ event.state | json }}
+      </span>
+    </span>
+  </span>
+  <span ng-switch-when="infection_rate_increased">
+    <span>The infection rate increased.</span>
+  </span>
+  <span ng-switch-when="infection_cards_restack">
+    <span>The discarded infection cards were reshuffled.</span>
+  </span>
+  <span ng-switch-when="draw_and_discard_infection_card">
+    <span>Infection card drawn: {{event.card.location}}</span>
+  </span>
+  <span ng-switch-when="draw_player_card">
+    <span>{{event.player}} drew
+      <span ng-if="event.card.type != 'epidemic'">a player card.</span>
+      <span ng-if="event.card.type == 'epidemic'">an epidemic!</span>
+    </span>
+  </span>
+  <span ng-switch-when="outbreak">
+    <span>Outbreak in {{event.location}}!</span>
+  </span>
+  <span ng-switch-when="infect">
+    <span>{{event.location}} infected!</span>
+  </span>
+  <span ng-switch-default>{{event.event_type}}</span>
+</span>

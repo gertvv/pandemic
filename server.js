@@ -96,11 +96,14 @@ function createWS(game) {
         if (game.owner === userId) {
           game.state = 'in progress';
           var emitter = {
-            emit: function(e) { socket.emit('event', e); }
+            emit: function(e) { chat.emit('event', e); }
           }
-          var theGame = new Game(gameDef, game.activeUsers, { "number_of_epidemics": 4 }, emitter, randy);
-          theGame.setup();
+          game.engine = new Game(gameDef, game.activeUsers, { "number_of_epidemics": 4 }, emitter, randy);
+          game.engine.setup();
         }
+      });
+      socket.on('act', function(action) {
+        game.engine.act(userId, action);
       });
       socket.on('disconnect', function() {
         game.activeUsers = _.without(game.activeUsers, userId);
