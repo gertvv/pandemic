@@ -7,6 +7,13 @@ app.factory('GameState', function() {
       service.game.state = "in progress";
       service.game.situation = e.situation;
     }
+    if (e.event_type == "infect") {
+      var location = _.find(service.game.situation.locations,
+        function(location) { return location.name === e.location; });
+      location.infections[e.disease]++;
+      $scope.$broadcast("updateInfections", location.name);
+      console.log(location);
+    }
   }
 
   function setGame(game, scope) {
@@ -104,6 +111,37 @@ app.filter('diseaseColor', function(GameState) {
       disease = _.find(situation.diseases, function(disease) { return disease.name == diseaseName; });
     }
     return disease ? disease.color : "white";
+  };
+});
+
+app.directive('infectionsMarker', function(GameState) {
+  return {
+    restrict: 'E',
+    transclude: true,
+    replace: true,
+    scope: {
+      location: '='
+    },
+    link: function(scope, element, attrs) {
+      var situation = GameState.game.situation;
+      scope.locationMarker = situation.location_marker_size;
+
+      function updateInfections() {
+        scope.infections = _.map(situation.diseases, function(disease) {
+          return {
+            'name': disease.name,
+            'color': disease.color,
+            'levels': _.times(scope.location.infections[disease.name], function(i) { return i; })
+          };
+        });
+      }
+
+      updateInfections();
+      scope.$on('updateInfections', function(event, args) {
+        if (args === scope.location.name) updateInfections();
+      });
+    },
+    templateUrl: 'partials/infections.svg'
   };
 });
 

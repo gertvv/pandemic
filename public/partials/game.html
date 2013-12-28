@@ -2,7 +2,7 @@
   <div class="columns large-12">
     <svg width="1024" height="724" ng-if="game.situation" ng-controller="MapCtrl">
       <image x="0" y="0" width="1024" height="724" xlink:href="{{game.situation.map.url}}" />
-      <rect ng-repeat="city in game.situation.locations" ng-attr-x="{{city.x}}" ng-attr-y="{{city.y}}" width="27" height="27" ng-attr-style="fill:{{city.disease | diseaseColor}}" />
+      <infections-marker ng-repeat="city in game.situation.locations" location-name="{{city.name}}" location="city" />
     </svg>
   </div>
 </div>
