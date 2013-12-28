@@ -8,6 +8,15 @@ var express = require('express'),
   randy = require('randy'),
   gameDef = require('./initializeGame')(require('./defaultGameDef'));
 
+var storage = require("node-persist");
+
+storage.initSync({
+  dir: 'db'
+});
+
+if (!storage.getItem('userTokens')) {
+  storage.setItem('userTokens', {});
+}
 
 app.use(express.static(__dirname + '/public'));
 app.use(express.cookieParser());
@@ -23,16 +32,14 @@ function randomId(size, prefix) {
   return prefix ? prefix + text : text;
 }
 
-var userTokens = {};
-var users = {};
-
 app.get('/me', function(req, res) {
   var token = req.cookies.pandemicToken;
+  var userTokens = storage.getItem('userTokens');
   if (!userTokens[token]) {
     res.status(404);
   } else {
     var id = userTokens[token];
-    res.json(users[id]);
+    res.json(storage.getItem('user.' + id));
   }
   res.end();
 });
@@ -41,21 +48,25 @@ app.post('/me', function(req, res) {
   var token = randomId(16);
   var id = randomId(5);
   var user = { 'name': null, 'id': id, 'type': 'user' }; 
-  users[id] = user;
+  storage.setItem('user.' + id, user); 
+  var userTokens = storage.getItem('userTokens');
   userTokens[token] = id;
+  storage.setItem('userTokens', userTokens);
   res.json(201, { 'name': null, 'id': id, 'type': 'user', 'token': token });
   res.end();
 });
 
 app.put('/me', function(req, res) {
   var token = req.cookies.pandemicToken;
+  var userTokens = storage.getItem('userTokens');
   if (!userTokens[token]) {
     res.status(403);
   } else {
     var id = userTokens[token];
-    console.log(users[id], req.body);
-    users[id].name = req.body.name;
-    res.json(users[id]);
+    var user = storage.getItem('user.' + id);
+    user.name = req.body.name;
+    storage.setItem('user.' + id, user);
+    res.json(user);
   }
   res.end();
 });
@@ -82,10 +93,11 @@ function createWS(game) {
   var chat = io.of(game.ws)
     .on('connection', function(socket) {
       var token = cookie.parse(socket.handshake.headers.cookie).pandemicToken;
+      var userTokens = storage.getItem('userTokens');
       var userId = userTokens[token];
-      var user = users[userId];
+      var user = storage.getItem('user.' + userId);
       game.activeUsers.push(userId);
-      chat.emit('users', _.map(game.activeUsers, function(id) { return users[id]; }));
+      chat.emit('users', _.map(game.activeUsers, function(id) { return storage.getItem('user.' + id); }));
       socket.emit('chat', { from: { 'name': 'Pandemic', 'type': 'system' }, text: 'Welcome to Pandemic!', date: Date.now() });
       _.each(game.log, function(item) {
         socket.emit(item.channel, item.message, errorLogger);
@@ -114,13 +126,14 @@ function createWS(game) {
       });
       socket.on('disconnect', function() {
         game.activeUsers = _.without(game.activeUsers, userId);
-        chat.emit('users', _.map(game.activeUsers, function(id) { return users[id]; }));
+        chat.emit('users', _.map(game.activeUsers, function(id) { return storage.getItem('user.' + id); }));
       });
     });
 }
 
 app.post('/games', function(req, res) {
   var token = req.cookies.pandemicToken;
+  var userTokens = storage.getItem("userTokens");
   if (!userTokens[token]) {
     res.status(403);
   } else {
