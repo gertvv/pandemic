@@ -16,6 +16,9 @@ app.factory('GameState', function() {
       disease.cubes--;
       $scope.$broadcast("updateInfections", location.name);
     }
+    if (e.event_type === "outbreak") {
+      service.game.situation.outbreak_count++;
+    }
     if (e.event_type === "state_change") {
       service.game.situation.state = e.state;
     }
