@@ -87,16 +87,23 @@ function createWS(game) {
       game.activeUsers.push(userId);
       chat.emit('users', _.map(game.activeUsers, function(id) { return users[id]; }));
       socket.emit('chat', { from: { 'name': 'Pandemic', 'type': 'system' }, text: 'Welcome to Pandemic!', date: Date.now() });
+      _.each(game.log, function(item) {
+        socket.emit(item.channel, item.message, errorLogger);
+      });
       socket.on('post', function(message) {
         message.from = user;
         message.date = Date.now();
+        game.log.push({'channel': 'chat', 'message': message});
         chat.emit('chat', message, errorLogger);
       });
       socket.on('start', function() {
         if (game.owner === userId) {
           game.state = 'in progress';
           var emitter = {
-            emit: function(e) { chat.emit('event', e); }
+            emit: function(e) { 
+              game.log.push({'channel': 'event', 'message': e});
+              chat.emit('event', e); 
+            }
           }
           game.engine = new Game(gameDef, game.activeUsers, { "number_of_epidemics": 4 }, emitter, randy);
           game.engine.setup();
@@ -126,7 +133,8 @@ app.post('/games', function(req, res) {
       title: 'Pandemic Game',
       _self: '/games/' + id,
       ws: '/games/' + id,
-      activeUsers: []
+      activeUsers: [],
+      log: []
     };
     createWS(games[id]);
     res.json(201, games[id]);
