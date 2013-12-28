@@ -48,12 +48,15 @@ describe("Game", function() {
   }
 
   function expectInfection(location, disease, number) {
-    expect(emitter.emit).toHaveBeenCalledWith({
+    var event = {
       "event_type": "infect",
       "location": location,
-      "disease": disease,
-      "number": number
+      "disease": disease
+    };
+    var events = _.filter(emitter.emit.calls, function(call) {
+      return _.isEqual(call.args[0], event);
     });
+    expect(events.length).toBe(number);
   }
 
   function expectDrawInfection(card, number) {
@@ -601,42 +604,34 @@ describe("Game", function() {
           "disease": "Blue" },
         { "event_type": "infect",
           "location": "Tokyo",
-          "disease": "Blue",
-          "number": 1 },
+          "disease": "Blue" },
         { "event_type": "infect",
           "location": "Manila",
-          "disease": "Blue",
-          "number": 1 },
+          "disease": "Blue" },
         { "event_type": "infect",
           "location": "Los Angeles",
-          "disease": "Blue",
-          "number": 1 },
+          "disease": "Blue" },
         { "event_type": "outbreak",
           "location": "Chicago",
           "disease": "Blue" },
         { "event_type": "infect",
           "location": "Los Angeles",
-          "disease": "Blue",
-          "number": 1 },
+          "disease": "Blue" },
         { "event_type": "infect",
           "location": "Mexico City",
-          "disease": "Blue",
-          "number": 1 },
+          "disease": "Blue" },
         { "event_type": "infect",
           "location": "Atlanta",
-          "disease": "Blue",
-          "number": 1 },
+          "disease": "Blue" },
         { "event_type": "outbreak",
           "location": "Toronto",
           "disease": "Blue" },
         { "event_type": "infect",
           "location": "Washington DC",
-          "disease": "Blue",
-          "number": 1 },
+          "disease": "Blue" },
         { "event_type": "infect",
           "location": "New York",
-          "disease": "Blue",
-          "number": 1 },
+          "disease": "Blue" },
         { "event_type": "state_change",
           "state": {
             "name": "draw_infection_cards",
@@ -692,6 +687,86 @@ describe("Game", function() {
         return call.args[0].event_type === "outbreak";
       });
       expect(outbreaks.length).toBe(8);
+    });
+
+    it("detects defeat by too many infections", function() {
+      var nInfections = gameDef.infection_cards_draw.length;
+      game.setup();
+      randy.shuffle = function(x) { return _.clone(x).reverse(); }
+
+      skipTurnActions("7aBf9");
+
+      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act("7aBf9", { "name": "increase_infection_intensity" })).toBeTruthy();
+      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+
+      spyOn(emitter, 'emit').andCallThrough();
+      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+
+      expect(emitter.emit).toHaveBeenCalledWith({
+        "event_type": "state_change",
+        "state": {
+          "name": "defeat_too_many_infections",
+          "disease": "Blue",
+          "terminal": true
+        }
+      });
+
+      var infections = _.filter(emitter.emit.calls, function(call) {
+        return call.args[0].event_type === "infect";
+      });
+      expect(infections.length).toBe(6);
+    });
+
+    it("gives the turn to the next player", function() {
+      randy.randInt = function(min, max) { return max; }
+      game.setup();
+
+      skipTurnActions("7aBf9");
+
+      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+
+      spyOn(emitter, 'emit').andCallThrough();
+      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+      expect(emitter.emit).toHaveBeenCalledWith({
+        "event_type": "state_change",
+        "state": {
+          "name": "player_actions",
+          "player": "UIyVz",
+          "actions_remaining": 4,
+          "terminal": false
+        }
+      });
+    });
+
+    it("gives the turn back to the first player", function() {
+      randy.randInt = function(min, max) { return max; }
+      game.setup();
+
+      skipTurnActions("7aBf9");
+      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+
+      skipTurnActions("UIyVz");
+      expect(game.act("UIyVz", { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act("UIyVz", { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act("UIyVz", { "name": "draw_infection_card" })).toBeTruthy();
+      spyOn(emitter, 'emit').andCallThrough();
+      expect(game.act("UIyVz", { "name": "draw_infection_card" })).toBeTruthy();
+
+      expect(emitter.emit).toHaveBeenCalledWith({
+        "event_type": "state_change",
+        "state": {
+          "name": "player_actions",
+          "player": "7aBf9",
+          "actions_remaining": 4,
+          "terminal": false
+        }
+      });
     });
   });
 });

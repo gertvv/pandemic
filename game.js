@@ -62,69 +62,78 @@ function Game(gameDef, players, settings, eventSink, randy) {
     });
     this.situation.state.draws_remaining--;
     if (card.type === "epidemic") {
-      this.handleEpidemic();
+      return this.handleEpidemic();
     } else {
       this.findPlayer(player).hand.push(card);
+      return true;
     }
   }
 
   this.handleEpidemic = function() {
     eventSink.emit({"event_type": "infection_rate_increased"});
-    this.drawInfection(3, true);
+    if (!this.drawInfection(3, true)) {
+      return false;
+    }
     this.parentState = this.situation.state;
     this.situation.state = { "name": "epidemic" };
     this.emitStateChange();
+    return true;
   };
 
-  this.infect = function(loc, dis, num, out) {
-    function emitInfect(n) {
+  this.infect = function(loc, dis, num) {
+    var max_infections = 3;
+
+    var self = this;
+
+    function _infect(locs, dis, out) {
+      if (_.isEmpty(locs)) return true;
+
+      var loc = _.first(locs);
+      var location = self.findLocation(loc);
+
+      // If an outbreak already occurred here, skip
+      if (_.contains(out, loc)) return _infect(_.rest(locs), dis, out);
+
+      // Outbreak
+      if (location.infections[dis] === max_infections) {
+        eventSink.emit({
+          "event_type": "outbreak",
+          "location": loc,
+          "disease": dis
+        });
+        self.situation.outbreak_count++;
+        if (self.situation.outbreak_count > self.situation.max_outbreaks) {
+          self.situation.state = { "name": "defeat_too_many_outbreaks", "terminal": true };
+          self.emitStateChange();
+          return false;
+        }
+        return _infect(_.rest(locs).concat(location.adjacent), dis, out.concat([loc]));
+      }
+
+      // Out of cubes
+      var disease = self.findDisease(dis);
+      if (disease.cubes === 0) {
+        self.situation.state = {
+          "name": "defeat_too_many_infections",
+          "disease": dis,
+          "terminal": true };
+        self.emitStateChange();
+        return false;
+      }
+
+      // Infection
+      location.infections[dis]++;
+      disease.cubes--;
       eventSink.emit({
         "event_type": "infect",
         "location": loc,
-        "disease": dis,
-        "number": n
-      });
-    }
-
-    if (_.isUndefined(out)) {
-      out = [];
-    }
-
-    if (_.contains(out, loc)) return true;
-
-    var max_infections = 3;
-    var location = this.findLocation(loc);
-
-    // Detect outbreaks
-    var capacity = max_infections - location.infections[dis];
-    if (num > capacity) {
-      if (capacity > 0) {
-        location.infections[dis] = max_infections;
-        emitInfect(capacity);
-      }
-      eventSink.emit({
-        "event_type": "outbreak",
-        "location": loc,
         "disease": dis
       });
-      this.situation.outbreak_count++;
-      if (this.situation.outbreak_count > this.situation.max_outbreaks) {
-        this.situation.state = { "name": "defeat_too_many_outbreaks", "terminal": true };
-        this.emitStateChange();
-        return false;
-      }
-      var self = this;
-      out.push(loc);
-      var ok = true;
-      _.each(location.adjacent, function(neighbour) {
-        if (ok) ok = self.infect(neighbour, dis, 1, out);
-      });
-      return ok;
-    } else {
-      location.infections[dis] += num;
-      emitInfect(num);
+
+      return _infect(_.rest(locs), dis, out);
     }
-    return true;
+
+    return _infect(_.times(num, function() { return loc; }), dis, []);
   };
 
   this.drawInfection = function(n, last) {
@@ -141,7 +150,7 @@ function Game(gameDef, players, settings, eventSink, randy) {
     });
 
     var location = this.findLocation(card.location);
-    this.infect(location.name, location.disease, n);
+    return this.infect(location.name, location.disease, n);
   };
 
   this.startInfectionPhase = function(player) {
@@ -255,7 +264,9 @@ function Game(gameDef, players, settings, eventSink, randy) {
       if (player !== this.situation.state.player) {
         return false;
       }
-      this.drawPlayerCard(player);
+      if (!this.drawPlayerCard(player)) { // Defeat
+        return true;
+      }
       if (this.situation.state.draws_remaining === 0) {
         this.startInfectionPhase(player);
       }
@@ -291,8 +302,23 @@ function Game(gameDef, players, settings, eventSink, randy) {
       if (player !== this.situation.state.player) {
         return false;
       }
-      this.drawInfection(1);
+      if (!this.drawInfection(1)) { // Defeat
+        return true;
+      }
       this.situation.state.draws_remaining--;
+      if (this.situation.state.draws_remaining === 0) {
+        var players = this.situation.players;
+        var index = _.indexOf(players, _.find(players, function(p) {
+          return p.id === player;
+        }));
+        var nextPlayer = index + 1 === players.length ? players[0] : players[index + 1];
+        this.situation.state = {
+          "name": "player_actions",
+          "player": nextPlayer.id,
+          "actions_remaining": 4,
+          "terminal": false
+        };
+      }
       this.emitStateChange();
       return true;
     }

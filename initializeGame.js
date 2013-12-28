@@ -1,4 +1,5 @@
 var _ = require("underscore");
+var clone = require("clone");
 
 function nameMatcher(name) {
   return function(arg) {
@@ -14,7 +15,7 @@ function nameMatcher(name) {
  */
 function initializeGame(input) {
   // Add fixed-value fields
-  var output = _.extend(_.clone(input), {
+  var output = _.extend(clone(input), {
       state: { 'type': 'in_progress', 'name': 'setup' },
       players: [],
       research_centers: [],
