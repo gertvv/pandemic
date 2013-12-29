@@ -257,7 +257,19 @@ function Game(eventSink, randy) {
     this.emitStateChange();
   };
 
+  this.discardPlayerCard = function(player, card) {
+    var thePlayer = this.findPlayer(player);
+    eventSink.emit({
+      "event_type": "discard_player_card",
+      "player": player,
+      "card": card
+    });
+    thePlayer.hand.splice(_.indexOf(thePlayer.hand, card), 1);
+    this.situation.player_cards_discard.unshift(card);
+  };
+
   this.act = function(player, action) {
+
     if (action.name.match(/^action_/)) {
       if (this.situation.state.name !== "player_actions") {
         return false;
@@ -273,6 +285,44 @@ function Game(eventSink, randy) {
         if (!_.contains(source.adjacent, action.location)) {
           return false;
         }
+        thePlayer.location = action.location;
+        eventSink.emit({
+          "event_type": "move_pawn",
+          "player": player,
+          "location": action.location
+        });
+      } else if (action.name === "action_charter_flight") {
+        var thePlayer = this.findPlayer(player);
+        if (thePlayer.location === action.location) {
+          return false;
+        }
+        var card = _.find(thePlayer.hand, function(card) {
+          return card.location === thePlayer.location; })
+        if (!card) {
+          return false;
+        }
+
+        this.discardPlayerCard(player, card);
+
+        thePlayer.location = action.location;
+        eventSink.emit({
+          "event_type": "move_pawn",
+          "player": player,
+          "location": action.location
+        });
+      } else if (action.name === "action_direct_flight") {
+        var thePlayer = this.findPlayer(player);
+        if (thePlayer.location === action.location) {
+          return false;
+        }
+        var card = _.find(thePlayer.hand, function(card) {
+          return card.location === action.location; })
+        if (!card) {
+          return false;
+        }
+
+        this.discardPlayerCard(player, card);
+
         thePlayer.location = action.location;
         eventSink.emit({
           "event_type": "move_pawn",
@@ -310,13 +360,7 @@ function Game(eventSink, randy) {
           return false;
         }
 
-        eventSink.emit({
-          "event_type": "discard_player_card",
-          "player": player,
-          "card": card
-        });
-        thePlayer.hand.splice(_.indexOf(thePlayer.hand, card), 1);
-        this.situation.player_cards_discard.unshift(card);
+        this.discardPlayerCard(player, card);
 
         eventSink.emit({
           "event_type": "build_research_center",

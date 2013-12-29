@@ -33,6 +33,14 @@ describe("Game", function() {
     });
   }
 
+  function expectDiscard(player, card) {
+    expect(emitter.emit).toHaveBeenCalledWith({
+      "event_type": "discard_player_card",
+      "player": player,
+      "card": card 
+    });
+  }
+
   function findLocation(name) {
     return _.find(gameDef.locations,
       function(location) { return location.name == name; });
@@ -930,10 +938,71 @@ describe("Game", function() {
       it('refuses to build a research center when it already exists', function() {
         var cards = gameDef.player_cards_draw;
         gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
-        console.log(gameDef.player_cards_draw);
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
         expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+    });
+
+    describe('charter_flight', function() {
+      it('allows to charter a flight', function() {
+        var cards = gameDef.player_cards_draw;
+        gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
+        gameSetup();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_charter_flight", "location": "Hong Kong" })).toBeTruthy();
+        expectActions("7aBf9", 3);
+        expectDiscard("7aBf9", { "type": "location", "location": "Atlanta" });
+        expectMove("7aBf9", "Hong Kong");
+        expectReplayMatch(game);
+      });
+
+      it('refuses a flight to the current location', function() {
+        var cards = gameDef.player_cards_draw;
+        gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
+        gameSetup();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_charter_flight", "location": "Atlanta" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it('refuses a flight without a ticket', function() {
+        gameSetup();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_charter_flight", "location": "Hong Kong" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+    });
+
+    describe('direct_flight', function() {
+      it('allows a direct flight', function() {
+        gameSetup();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_direct_flight", "location": "Toronto" })).toBeTruthy();
+        expectActions("7aBf9", 3);
+        expectDiscard("7aBf9", { "type": "location", "location": "Toronto" });
+        expectMove("7aBf9", "Toronto");
+        expectReplayMatch(game);
+      });
+
+      it('refuses a flight to the current location', function() {
+        var cards = gameDef.player_cards_draw;
+        gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
+        gameSetup();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_direct_flight", "location": "Atlanta" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it('refuses a flight without a ticket', function() {
+        gameSetup();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_direct_flight", "location": "Hong Kong" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
