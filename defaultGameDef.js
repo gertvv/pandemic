@@ -540,6 +540,7 @@ module.exports = {
     ["Ho Chi Minh", "Hong Kong"],
     ["Manila", "Sydney"],
     ["Manila", "Taipei"],
+    ["Manila", "Hong Kong"],
     ["Hong Kong", "Shanghai"],
     ["Hong Kong", "Taipei"],
     ["Shanghai", "Taipei"],
