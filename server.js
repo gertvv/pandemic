@@ -6,7 +6,8 @@ var express = require('express'),
   _ = require('underscore'),
   Game = require('./game'),
   randy = require('randy'),
-  gameDef = require('./initializeGame')(require('./defaultGameDef'));
+  gameDef = require('./initializeGame')(require('./defaultGameDef')),
+  Replay = require('./replay');
 
 var storage = require("node-persist");
 
@@ -16,6 +17,10 @@ storage.initSync({
 
 if (!storage.getItem('userTokens')) {
   storage.setItem('userTokens', {});
+}
+
+if (!storage.getItem('games')) {
+  storage.setItem('games', {});
 }
 
 app.use(express.static(__dirname + '/public'));
@@ -71,14 +76,14 @@ app.put('/me', function(req, res) {
   res.end();
 });
 
-var games = {};
-
 app.get('/games', function(req, res) {
+  var games = storage.getItem('games');
   res.json(games);
   res.end();
 });
 
 app.get('/games/:id?', function(req, res) {
+  var games = storage.getItem('games');
   var id = req.params.id;
   if (games[id]) {
     res.json(games[id]);
@@ -89,43 +94,76 @@ app.get('/games/:id?', function(req, res) {
   }
 });
 
-function createWS(game) {
-  var chat = io.of(game.ws)
-    .on('connection', function(socket) {
+function updateGame(game) {
+  var games = storage.getItem("games");
+  games[game.id] = game;
+  storage.setItem("games", games);
+}
+
+function createWS(gameId, situation) {
+  if (!storage.getItem('gamelog.' + gameId)) {
+    storage.setItem('gamelog.' + gameId, []);
+  }
+
+  function logAppend(item) {
+    var log = storage.getItem("gamelog." + gameId);
+    log.push(item);
+    storage.setItem("gamelog." + gameId, log);
+  }
+
+  var game = storage.getItem("games")[gameId];
+  var chat = io.of(game.ws);
+
+  var emitter = {
+    emit: function(e) { 
+      e.date = Date.now();
+      logAppend({'channel': 'event', 'message': e });
+      chat.emit('event', e); 
+    }
+  }
+
+  var engine = null;
+  if (!_.isUndefined(situation)) {
+    engine = new Game(emitter, randy);
+    engine.resume(situation);
+  }
+
+  chat.on('connection', function(socket) {
       var token = cookie.parse(socket.handshake.headers.cookie).pandemicToken;
       var userTokens = storage.getItem('userTokens');
       var userId = userTokens[token];
       var user = storage.getItem('user.' + userId);
       game.activeUsers.push(userId);
+      updateGame(game);
       chat.emit('users', _.map(game.activeUsers, function(id) { return storage.getItem('user.' + id); }));
       socket.emit('chat', { from: { 'name': 'Pandemic', 'type': 'system' }, text: 'Welcome to Pandemic!', date: Date.now() });
-      _.each(game.log, function(item) {
+      _.each(storage.getItem("gamelog." + gameId), function(item) {
         socket.emit(item.channel, item.message, errorLogger);
       });
       socket.on('post', function(message) {
         message.from = user;
         message.date = Date.now();
-        game.log.push({'channel': 'chat', 'message': message});
+        logAppend({'channel': 'chat', 'message': message});
         chat.emit('chat', message, errorLogger);
       });
       socket.on('start', function() {
+        if (!_.isNull(engine)) return;
+
         if (game.owner === userId) {
           game.state = 'in progress';
-          var emitter = {
-            emit: function(e) { 
-              game.log.push({'channel': 'event', 'message': e});
-              chat.emit('event', e); 
-            }
-          }
-          game.engine = new Game(gameDef, game.activeUsers, { "number_of_epidemics": 4 }, emitter, randy);
-          game.engine.setup();
+          updateGame(game);
+          engine = new Game(emitter, randy);
+          engine.setup(gameDef, game.activeUsers, { "number_of_epidemics": 4 });
         }
       });
       socket.on('act', function(action) {
-        game.engine.act(userId, action);
+        if (!_.isNull(engine)) {
+          engine.act(userId, action);
+        }
       });
       socket.on('disconnect', function() {
         game.activeUsers = _.without(game.activeUsers, userId);
+        updateGame(game);
         chat.emit('users', _.map(game.activeUsers, function(id) { return storage.getItem('user.' + id); }));
       });
     });
@@ -139,6 +177,7 @@ app.post('/games', function(req, res) {
   } else {
     var userId = userTokens[token];
     var id = randomId(5);
+    var games = storage.getItem("games");
     games[id] = {
       id: id,
       owner: userId,
@@ -146,13 +185,33 @@ app.post('/games', function(req, res) {
       title: 'Pandemic Game',
       _self: '/games/' + id,
       ws: '/games/' + id,
-      activeUsers: [],
-      log: []
+      activeUsers: []
     };
-    createWS(games[id]);
+    storage.setItem("games", games);
+    createWS(id);
     res.json(201, games[id]);
   }
   res.end();
+});
+
+function resumeGame(game) {
+  game.activeUsers = [];
+  updateGame(game);
+  if (game.state === 'in progress') {
+    var replay = new Replay();
+    _.each(storage.getItem('gamelog.' + game.id), function(item) {
+      if (item.channel === 'event') {
+        replay.receive(item.message);
+      }
+    });
+    createWS(game.id, replay.situation);
+  } else {
+    createWS(game.id);
+  }
+}
+
+_.each(storage.getItem('games'), function(game, id) {
+  resumeGame(game);
 });
 
 server.listen(8080);

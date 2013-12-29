@@ -7,9 +7,8 @@ function nameMatcher(name) {
   };
 }
 
-function Game(gameDef, players, settings, eventSink, randy) {
+function Game(eventSink, randy) {
   this.situation = null;
-  this.parentState = null;
 
   this.findLocation = function(locationName) {
     return _.find(this.situation.locations, nameMatcher(locationName));
@@ -70,12 +69,17 @@ function Game(gameDef, players, settings, eventSink, randy) {
   }
 
   this.handleEpidemic = function() {
+    this.situation.infection_rate_index++;
     eventSink.emit({"event_type": "infection_rate_increased"});
     if (!this.drawInfection(3, true)) {
       return false;
     }
-    this.parentState = this.situation.state;
-    this.situation.state = { "name": "epidemic" };
+    this.situation.state = {
+      "name": "epidemic",
+      "player": this.situation.state.player,
+      "parent": this.situation.state,
+      "terminal": false
+    };
     this.emitStateChange();
     return true;
   };
@@ -164,7 +168,17 @@ function Game(gameDef, players, settings, eventSink, randy) {
     this.emitStateChange();
   }
 
-  this.setup = function() {
+  this.resume = function(situation) {
+    if (!_.isNull(this.situation)) {
+      throw "Game already initialized!";
+    }
+    this.situation = clone(situation);
+  }
+
+  this.setup = function(gameDef, players, settings) {
+    if (!_.isNull(this.situation)) {
+      throw "Game already initialized!";
+    }
     var initialState = _.extend(clone(gameDef), settings);
 
     // assign roles
@@ -208,11 +222,11 @@ function Game(gameDef, players, settings, eventSink, randy) {
           },
           { "index": nReserved });
 
-      return _.reduce(chunks, function(memo, chunk) {
+      return _.reduce(chunks, function(memo, chunk, index) {
           var where = randy.randInt(chunk[0], chunk[1]);
           return memo
             .concat(cards.slice(chunk[0], where))
-            .concat([{ "type": "epidemic" }])
+            .concat([{ "type": "epidemic", "number": index }])
             .concat(cards.slice(where, chunk[1]));
         }, cards.slice(0, nReserved));
     }
@@ -275,7 +289,7 @@ function Game(gameDef, players, settings, eventSink, randy) {
       if (this.situation.state.name !== "epidemic") {
         return false;
       }
-      if (player !== this.parentState.player) {
+      if (player !== this.situation.state.player) {
         return false;
       }
       var cards = randy.shuffle(this.situation.infection_cards_discard);
@@ -285,11 +299,11 @@ function Game(gameDef, players, settings, eventSink, randy) {
       });
       this.situation.infection_cards_discard = [];
       this.situation.infection_cards_draw = cards.concat(this.situation.infection_cards_draw);
-      if (this.parentState.name !== "draw_player_cards") {
+      if (this.situation.state.parent.name !== "draw_player_cards") {
         throw "invalid state";
       }
-      if (this.parentState.draws_remaining > 0) {
-        this.situation.state = this.parentState;
+      if (this.situation.state.parent.draws_remaining > 0) {
+        this.situation.state = this.situation.state.parent;
         this.emitStateChange();
       } else {
         this.startInfectionPhase(player);

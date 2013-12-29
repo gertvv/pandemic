@@ -4,11 +4,13 @@ var _ = require("underscore");
 var fs = require("fs");
 
 var defaultGameDef = require('../defaultGameDef');
+var Replay = require('../replay');
 
 describe("Game", function() {
   var gameDef;
   var randy;
   var emitter;
+  var replay;
 
   beforeEach(function() {
     gameDef = initializeGame(defaultGameDef);
@@ -17,8 +19,9 @@ describe("Game", function() {
       shuffle: function(arr) { return _.clone(arr).reverse(); },
       randInt: function(min, max) { return min; }
     };
+    replay = new Replay();
     emitter = {
-      emit: function(event) {}
+      emit: function(e) { replay.receive(e); }
     };
   });
 
@@ -66,13 +69,17 @@ describe("Game", function() {
     });
     expectInfection(card.location, findDisease(card.location), number);
   }
+
+  function expectReplayMatch(game) {
+    expect(game.situation).toEqual(replay.situation);
+  }
   
   describe(".setup()", function() {
     it("should assign roles, locations, hands", function() {
       spyOn(randy, "sample").andCallThrough();
-      spyOn(emitter, "emit");
-      var game = new Game(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 }, emitter, randy);
-      game.setup();
+      spyOn(emitter, "emit").andCallThrough();
+      var game = new Game(emitter, randy);
+      game.setup(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 });
       expect(randy.sample).toHaveBeenCalledWith([
         "Dispatcher",
         "Operations Expert",
@@ -87,13 +94,14 @@ describe("Game", function() {
             { "id": "7aBf9", "role": "Medic", "location": "Atlanta", "hand": [] },
             { "id": "UIyVz", "role": "Scientist", "location": "Atlanta", "hand": [] }
           ]);
+      expectReplayMatch(game);
     });
 
     it("should shuffle infection cards", function() {
       spyOn(randy, "shuffle").andCallThrough();
       spyOn(emitter, "emit");
-      var game = new Game(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 }, emitter, randy);
-      game.setup();
+      var game = new Game(emitter, randy);
+      game.setup(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 });
       expect(randy.shuffle).toHaveBeenCalledWith(gameDef.infection_cards_draw);
       expect(emitter.emit).toHaveBeenCalled();
       var firstEvent = emitter.emit.calls[0].args[0];
@@ -104,19 +112,19 @@ describe("Game", function() {
 
     it("should shuffle player cards", function() {
       spyOn(randy, "shuffle").andCallThrough();
-      var game = new Game(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 }, emitter, randy);
-      game.setup();
+      var game = new Game(emitter, randy);
+      game.setup(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 });
       expect(randy.shuffle).toHaveBeenCalledWith(gameDef.player_cards_draw);
     });
 
     it("should insert epidemics into player cards (2 players, 4 epidemics)", function() {
       spyOn(randy, "randInt").andCallThrough();
       spyOn(emitter, "emit");
-      var game = new Game(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 }, emitter, randy);
-      game.setup();
+      var game = new Game(emitter, randy);
+      game.setup(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 });
       expect(randy.randInt.calls.length).toBe(4);
 
-      var epidemic = { "type": "epidemic" };
+      function epidemic(n) { return { "type": "epidemic", "number": n }; }
       var cards = _.clone(gameDef.player_cards_draw).reverse();
 
       // Initially there are 48 + 5 = 53 player cards.
@@ -124,13 +132,13 @@ describe("Game", function() {
       // The remaining 53 - 8 = 45 are divided into 4 piles: 12, 11, 11, 11
       var expected =
         cards.slice(0, 8)
-        .concat([epidemic])
+        .concat([epidemic(0)])
         .concat(cards.slice(8, 20))
-        .concat([epidemic])
+        .concat([epidemic(1)])
         .concat(cards.slice(20, 31))
-        .concat([epidemic])
+        .concat([epidemic(2)])
         .concat(cards.slice(31, 42))
-        .concat([epidemic])
+        .concat([epidemic(3)])
         .concat(cards.slice(42, 53));
 
       expect(emitter.emit).toHaveBeenCalled();
@@ -143,12 +151,11 @@ describe("Game", function() {
       spyOn(randy, "sample").andReturn(["Medic", "Scientist", "Researcher"]);
       spyOn(randy, "randInt").andCallThrough();
       spyOn(emitter, "emit");
-      var game = new Game(gameDef, ["7aBf9", "UIyVz", "hi7H9"],
-        { "number_of_epidemics": 4 }, emitter, randy);
-      game.setup();
+      var game = new Game(emitter, randy);
+      game.setup(gameDef, ["7aBf9", "UIyVz", "hi7H9"], { "number_of_epidemics": 4 });
       expect(randy.randInt.calls.length).toBe(4);
 
-      var epidemic = { "type": "epidemic" };
+      function epidemic(n) { return { "type": "epidemic", "number": n }; }
       var cards = _.clone(gameDef.player_cards_draw).reverse();
 
       // Initially there are 48 + 5 = 53 player cards.
@@ -156,13 +163,13 @@ describe("Game", function() {
       // The remaining 53 - 9 = 44 are divided into 4 piles: 11, 11, 11, 11
       var expected =
         cards.slice(0, 9)
-        .concat([epidemic])
+        .concat([epidemic(0)])
         .concat(cards.slice(9, 20))
-        .concat([epidemic])
+        .concat([epidemic(1)])
         .concat(cards.slice(20, 31))
-        .concat([epidemic])
+        .concat([epidemic(2)])
         .concat(cards.slice(31, 42))
-        .concat([epidemic])
+        .concat([epidemic(3)])
         .concat(cards.slice(42, 53));
 
       expect(emitter.emit).toHaveBeenCalled();
@@ -176,12 +183,11 @@ describe("Game", function() {
       spyOn(randy, "sample").andReturn(["Medic", "Scientist", "Researcher"]);
       spyOn(randy, "randInt").andCallThrough();
       spyOn(emitter, "emit");
-      var game = new Game(gameDef, ["7aBf9", "UIyVz", "hi7H9"],
-        { "number_of_epidemics": 4 }, emitter, randy);
-      game.setup();
+      var game = new Game(emitter, randy);
+      game.setup(gameDef, ["7aBf9", "UIyVz", "hi7H9"], { "number_of_epidemics": 4 });
       expect(randy.randInt.calls.length).toBe(4);
 
-      var epidemic = { "type": "epidemic" };
+      function epidemic(n) { return { "type": "epidemic", "number": n }; }
       var cards = _.clone(gameDef.player_cards_draw).reverse();
 
       // Initially there are 48 + 5 = 53 player cards.
@@ -189,13 +195,13 @@ describe("Game", function() {
       // The remaining 53 - 9 = 44 are divided into 4 piles: 11, 11, 11, 11
       var expected =
         cards.slice(0, 9 + 5)
-        .concat([epidemic])
+        .concat([epidemic(0)])
         .concat(cards.slice(9 + 5, 20 + 5))
-        .concat([epidemic])
+        .concat([epidemic(1)])
         .concat(cards.slice(20 + 5, 31 + 5))
-        .concat([epidemic])
+        .concat([epidemic(2)])
         .concat(cards.slice(31 + 5, 42 + 5))
-        .concat([epidemic])
+        .concat([epidemic(3)])
         .concat(cards.slice(42 + 5, 53));
 
       expect(emitter.emit).toHaveBeenCalled();
@@ -209,12 +215,11 @@ describe("Game", function() {
       spyOn(randy, "sample").andReturn(["Medic", "Scientist", "Researcher"]);
       spyOn(randy, "randInt").andCallThrough();
       spyOn(emitter, "emit");
-      var game = new Game(gameDef, ["7aBf9", "UIyVz", "hi7H9"],
-        { "number_of_epidemics": 4 }, emitter, randy);
-      game.setup();
+      var game = new Game(emitter, randy);
+      game.setup(gameDef, ["7aBf9", "UIyVz", "hi7H9"], { "number_of_epidemics": 4 });
       expect(randy.randInt.calls.length).toBe(4);
 
-      var epidemic = { "type": "epidemic" };
+      function epidemic(n) { return { "type": "epidemic", "number": n }; }
       var cards = _.clone(gameDef.player_cards_draw).reverse();
 
       // Initially there are 48 + 5 = 53 player cards.
@@ -222,13 +227,13 @@ describe("Game", function() {
       // The remaining 53 - 9 = 44 are divided into 4 piles: 11, 11, 11, 11
       var expected =
         cards.slice(0, 20)
-        .concat([epidemic])
+        .concat([epidemic(0)])
         .concat(cards.slice(20, 31))
-        .concat([epidemic])
+        .concat([epidemic(1)])
         .concat(cards.slice(31, 42))
-        .concat([epidemic])
+        .concat([epidemic(2)])
         .concat(cards.slice(42, 53))
-        .concat([epidemic]);
+        .concat([epidemic(3)]);
 
       expect(emitter.emit).toHaveBeenCalled();
       var firstEvent = emitter.emit.calls[0].args[0];
@@ -240,12 +245,11 @@ describe("Game", function() {
       spyOn(randy, "sample").andReturn(["Medic", "Scientist", "Researcher", "Dispatcher"]);
       spyOn(randy, "randInt").andCallThrough();
       spyOn(emitter, "emit");
-      var game = new Game(gameDef, ["7aBf9", "UIyVz", "hi7H9", "83ynY"],
-        { "number_of_epidemics": 6 }, emitter, randy);
-      game.setup();
+      var game = new Game(emitter, randy);
+      game.setup(gameDef, ["7aBf9", "UIyVz", "hi7H9", "83ynY"], { "number_of_epidemics": 6 });
       expect(randy.randInt.calls.length).toBe(6);
 
-      var epidemic = { "type": "epidemic" };
+      function epidemic(n) { return { "type": "epidemic", "number": n }; }
       var cards = _.clone(gameDef.player_cards_draw).reverse();
 
       // Initially there are 48 + 5 = 53 player cards.
@@ -253,17 +257,17 @@ describe("Game", function() {
       // The remaining 53 - 8 = 45 are divided into 6 piles: 8, 8, 8, 7, 7, 7
       var expected =
         cards.slice(0, 8)
-        .concat([epidemic])
+        .concat([epidemic(0)])
         .concat(cards.slice(8, 16))
-        .concat([epidemic])
+        .concat([epidemic(1)])
         .concat(cards.slice(16, 24))
-        .concat([epidemic])
+        .concat([epidemic(2)])
         .concat(cards.slice(24, 32))
-        .concat([epidemic])
+        .concat([epidemic(3)])
         .concat(cards.slice(32, 39))
-        .concat([epidemic])
+        .concat([epidemic(4)])
         .concat(cards.slice(39, 46))
-        .concat([epidemic])
+        .concat([epidemic(5)])
         .concat(cards.slice(46, 53));
 
       expect(emitter.emit).toHaveBeenCalled();
@@ -274,8 +278,8 @@ describe("Game", function() {
 
     it("should set the initial state and research centers", function() {
       spyOn(emitter, "emit");
-      var game = new Game(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 }, emitter, randy);
-      game.setup();
+      var game = new Game(emitter, randy);
+      game.setup(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 });
       expect(emitter.emit).toHaveBeenCalled();
       var firstEvent = emitter.emit.calls[0].args[0];
       expect(firstEvent.event_type).toEqual("initial_situation");
@@ -290,17 +294,17 @@ describe("Game", function() {
           { "id": "7aBf9", "role": "Medic", "location": "Atlanta", "hand": [] },
           { "id": "UIyVz", "role": "Scientist", "location": "Atlanta", "hand": [] } ];
       expectedState.infection_cards_draw = _.clone(gameDef.infection_cards_draw).reverse();
-      var epidemic = { "type": "epidemic" };
+      function epidemic(n) { return { "type": "epidemic", "number": n }; }
       var cards = _.clone(gameDef.player_cards_draw).reverse();
       expectedState.player_cards_draw =
         cards.slice(0, 8)
-        .concat([epidemic])
+        .concat([epidemic(0)])
         .concat(cards.slice(8, 20))
-        .concat([epidemic])
+        .concat([epidemic(1)])
         .concat(cards.slice(20, 31))
-        .concat([epidemic])
+        .concat([epidemic(2)])
         .concat(cards.slice(31, 42))
-        .concat([epidemic])
+        .concat([epidemic(3)])
         .concat(cards.slice(42, 53));
       expectedState.state = { "name": "setup", "terminal": false };
       expectedState.number_of_epidemics = 4;
@@ -308,8 +312,8 @@ describe("Game", function() {
       expectedState.research_centers_available = 5;
 
       spyOn(emitter, "emit");
-      var game = new Game(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 }, emitter, randy);
-      game.setup();
+      var game = new Game(emitter, randy);
+      game.setup(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 });
       expect(emitter.emit).toHaveBeenCalled();
       var firstEvent = emitter.emit.calls[0].args[0];
       expect(firstEvent.event_type).toEqual("initial_situation");
@@ -318,8 +322,8 @@ describe("Game", function() {
 
     it("should carry out initial infections", function() {
       spyOn(emitter, "emit");
-      var game = new Game(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 }, emitter, randy);
-      game.setup();
+      var game = new Game(emitter, randy);
+      game.setup(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 });
 
       var cards = _.clone(gameDef.infection_cards_draw).reverse();
 
@@ -337,8 +341,8 @@ describe("Game", function() {
     it("should deal initial cards to players", function() {
       spyOn(emitter, "emit");
       var players = ["7aBf9", "UIyVz", "xiv9U"];
-      var game = new Game(gameDef, players, { "number_of_epidemics": 4 }, emitter, randy);
-      game.setup();
+      var game = new Game(emitter, randy);
+      game.setup(gameDef, players, { "number_of_epidemics": 4 });
 
       var cards = _.clone(gameDef.player_cards_draw).reverse();
 
@@ -356,8 +360,8 @@ describe("Game", function() {
     it("should give the first player a turn", function() {
       spyOn(emitter, "emit");
       var players = ["7aBf9", "UIyVz", "xiv9U"];
-      var game = new Game(gameDef, players, { "number_of_epidemics": 4 }, emitter, randy);
-      game.setup();
+      var game = new Game(emitter, randy);
+      game.setup(gameDef, players, { "number_of_epidemics": 4 });
 
       var lastCall = emitter.emit.calls[emitter.emit.calls.length - 1];
       expect(lastCall.args[0]).toEqual({
@@ -377,8 +381,12 @@ describe("Game", function() {
 
     beforeEach(function() {
       randy.shuffle = function(arr) { return _.clone(arr); }
-      game = new Game(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 }, emitter, randy);
+      game = new Game(emitter, randy);
     });
+
+    function gameSetup() {
+      game.setup(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 });
+    }
 
     function expectActions(player, remaining) {
       expect(emitter.emit).toHaveBeenCalledWith({
@@ -417,7 +425,7 @@ describe("Game", function() {
     }
 
     it("handles 'pass' by decrementing the actions", function() {
-      game.setup();
+      gameSetup();
       spyOn(emitter, 'emit').andCallThrough();
       expect(game.act("7aBf9", { "name": "action_pass" })).toBeTruthy();
       expectActions("7aBf9", 3);
@@ -427,10 +435,11 @@ describe("Game", function() {
       expectActions("7aBf9", 1);
       expect(game.act("7aBf9", { "name": "action_pass" })).toBeTruthy();
       expectDrawState("7aBf9", 2);
+      expectReplayMatch(game);
     });
 
     it("refuses 'pass' from other players", function() {
-      game.setup();
+      gameSetup();
       expect(game.act("UIyVz", { "name": "action_pass" })).toBeFalsy();
     });
 
@@ -442,14 +451,14 @@ describe("Game", function() {
     }
 
     it("refuses 'pass' when not in player_actions state", function() {
-      game.setup();
+      gameSetup();
       skipTurnActions("7aBf9");
       expect(game.act("7aBf9", { "name": "action_pass" })).toBeFalsy();
     });
 
     it("enables players to draw cards when appropriate", function() {
       randy.randInt = function(min, max) { return max; }
-      game.setup();
+      gameSetup();
 
       expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeFalsy();
       skipTurnActions("7aBf9");
@@ -462,17 +471,19 @@ describe("Game", function() {
       expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
       expectDraw("7aBf9", gameDef.player_cards_draw[9]);
       expectInfectionState("7aBf9", 2);
+
+      expectReplayMatch(game);
     });
 
     it("handles epidemics appropriately", function() {
       var nInfections = gameDef.infection_cards_draw.length;
-      game.setup();
+      gameSetup();
       skipTurnActions("7aBf9");
 
       // Drawing an epidemic
       spyOn(emitter, 'emit').andCallThrough();
       expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-      expectDraw("7aBf9", { "type": "epidemic" });
+      expectDraw("7aBf9", { "type": "epidemic", "number": 0 });
       //  - triggers increased infection rate
       expect(emitter.emit).toHaveBeenCalledWith({
         "event_type": "infection_rate_increased"
@@ -482,7 +493,17 @@ describe("Game", function() {
       //  - triggers the "epidemic" state
       expect(emitter.emit).toHaveBeenCalledWith({
         "event_type": "state_change",
-        "state": { "name": "epidemic" }
+        "state": {
+          "name": "epidemic",
+          "player": "7aBf9",
+          "parent": {
+            "name": "draw_player_cards",
+            "player": "7aBf9",
+            "draws_remaining": 1,
+            "terminal": false
+          },
+          "terminal": false
+        }
       });
 
       // No cards can be drawn in the epidemic state
@@ -507,12 +528,14 @@ describe("Game", function() {
 
       // Then transition back to drawing player cards
       expectDrawState("7aBf9", 1);
+
+      expectReplayMatch(game);
     });
 
     it("transitions to infection directly after epidemic on second draw", function() {
       var nInfections = gameDef.infection_cards_draw.length;
       randy.randInt = function(min, max) { return min + 1 };
-      game.setup();
+      gameSetup();
       skipTurnActions("7aBf9");
 
       expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
@@ -520,13 +543,15 @@ describe("Game", function() {
       spyOn(emitter, 'emit').andCallThrough();
       // Drawing an epidemic
       expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-      expectDraw("7aBf9", { "type": "epidemic" });
+      expectDraw("7aBf9", { "type": "epidemic", "number": 0 });
       expect(game.act("7aBf9", { "name": "increase_infection_intensity" })).toBeTruthy();
       expectInfectionState("7aBf9", 2);
+
+      expectReplayMatch(game);
     });
 
     it("handles infection", function() {
-      game.setup();
+      gameSetup();
 
       randy.shuffle = function(arr) {
         return arr.slice(1, arr.length).concat(arr.slice(0, 1));
@@ -542,11 +567,13 @@ describe("Game", function() {
       expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
       expectDrawInfection(gameDef.infection_cards_draw[8], 1);
       expectInfectionState("7aBf9", 1);
+
+      expectReplayMatch(game);
     });
 
     it("handles outbreaks", function() {
       var nInfections = gameDef.infection_cards_draw.length;
-      game.setup();
+      gameSetup();
       randy.shuffle = function(x) { return _.clone(x); }
 
       skipTurnActions("7aBf9");
@@ -569,6 +596,8 @@ describe("Game", function() {
       expectInfection("Johannesburg", disease, 1);
       expectInfection("Khartoum", disease, 1);
       expectInfectionState("7aBf9", 1);
+
+      expectReplayMatch(game);
     });
 
     it("handles chain reactions", function() {
@@ -576,7 +605,7 @@ describe("Game", function() {
         disease.cubes = 1000;
       });
       var nInfections = gameDef.infection_cards_draw.length;
-      game.setup();
+      gameSetup();
       randy.shuffle = function(x) { return _.clone(x).reverse(); }
 
       skipTurnActions("7aBf9");
@@ -652,6 +681,8 @@ describe("Game", function() {
       // 3: San Francisco, Chicago, Toronto, Atlanta, New York, Washington DC
       // 2: Los Angeles
       // 1: London, Madrid, Essen, Tokyo, Manila, Mexico City
+
+      expectReplayMatch(game);
     });
 
     it("detects defeat by too many outbreaks", function() {
@@ -659,7 +690,7 @@ describe("Game", function() {
         disease.cubes = 1000;
       });
       var nInfections = gameDef.infection_cards_draw.length;
-      game.setup();
+      gameSetup();
       randy.shuffle = function(x) { return _.clone(x).reverse(); }
 
       skipTurnActions("7aBf9");
@@ -687,11 +718,13 @@ describe("Game", function() {
         return call.args[0].event_type === "outbreak";
       });
       expect(outbreaks.length).toBe(8);
+
+      expectReplayMatch(game);
     });
 
     it("detects defeat by too many infections", function() {
       var nInfections = gameDef.infection_cards_draw.length;
-      game.setup();
+      gameSetup();
       randy.shuffle = function(x) { return _.clone(x).reverse(); }
 
       skipTurnActions("7aBf9");
@@ -716,11 +749,13 @@ describe("Game", function() {
         return call.args[0].event_type === "infect";
       });
       expect(infections.length).toBe(6);
+
+      expectReplayMatch(game);
     });
 
     it("gives the turn to the next player", function() {
       randy.randInt = function(min, max) { return max; }
-      game.setup();
+      gameSetup();
 
       skipTurnActions("7aBf9");
 
@@ -739,11 +774,13 @@ describe("Game", function() {
           "terminal": false
         }
       });
+
+      expectReplayMatch(game);
     });
 
     it("gives the turn back to the first player", function() {
       randy.randInt = function(min, max) { return max; }
-      game.setup();
+      gameSetup();
 
       skipTurnActions("7aBf9");
       expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
@@ -767,6 +804,8 @@ describe("Game", function() {
           "terminal": false
         }
       });
+
+      expectReplayMatch(game);
     });
   });
 });
