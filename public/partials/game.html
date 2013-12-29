@@ -84,6 +84,7 @@
             <li ng-repeat="player in game.situation.players">
               <pandemic-user player-id="{{player.id}}"></pandemic-user>
               <pandemic-role role="{{player.role}}"></pandemic-role>
+              <span ng-show="player.id == game.situation.state.player">&larr;</span>
             </li>
           </ul>
         </div>
@@ -221,6 +222,5 @@
         ng-click="increaseInfectionIntensity()"
         ng-disabled="game.situation.state.name != 'epidemic'">Increase infection intensity</button>
     </div>
-    <pre>{{game.situation.players | json}}</pre>
   </div>
 </div>
