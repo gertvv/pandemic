@@ -807,5 +807,136 @@ describe("Game", function() {
 
       expectReplayMatch(game);
     });
+
+    function expectMove(player, location) {
+      expect(emitter.emit).toHaveBeenCalledWith({
+        "event_type": "move_pawn",
+        "player": player,
+        "location": location
+      });
+    }
+
+    function expectTreatment(location, disease, number) {
+      expect(emitter.emit).toHaveBeenCalledWith({
+        "event_type": "treat_disease",
+        "location": location,
+        "disease": disease,
+        "number": number
+      });
+    }
+
+    describe('drive', function() {
+      it('allows to move to an adjacent location', function() {
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_drive", "location": "Washington DC"})).toBeTruthy();
+        expectActions("7aBf9", 3);
+        expectMove("7aBf9", "Washington DC");
+        expectReplayMatch(game);
+      });
+
+      it('refuses to move to a non-adjacent location', function() {
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_drive", "location": "Algiers"})).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it('tracks the updated location', function() {
+        gameSetup();
+        expect(game.act("7aBf9", { "name": "action_drive", "location": "Washington DC"})).toBeTruthy();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_drive", "location": "New York"})).toBeTruthy();
+        expectActions("7aBf9", 2);
+        expectMove("7aBf9", "New York");
+        expectReplayMatch(game);
+      });
+    });
+
+    describe('treat_disease', function() {
+      it('allows to remove a cube from the current location', function() {
+        randy.sample = function(population, count) { return ["Researcher", "Scientist"]; },
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Blue"})).toBeTruthy();
+        expectActions("7aBf9", 3);
+        expectTreatment("Atlanta", "Blue", 1);
+        expectReplayMatch(game);
+      });
+
+      it('refuses to treat non-present disease', function() {
+        randy.sample = function(population, count) { return ["Researcher", "Scientist"]; },
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Red"})).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it('treats until all cubes are gone', function() {
+        randy.sample = function(population, count) { return ["Researcher", "Scientist"]; },
+        gameSetup();
+        expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Blue"})).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Blue"})).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Blue"})).toBeFalsy();
+        expectReplayMatch(game);
+      });
+    });
+
+    describe('build-research-center', function() {
+      it('allows to build a research center', function() {
+        gameSetup();
+        expect(game.act("7aBf9", { "name": "action_drive", "location": "Chicago" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "location": "Toronto" })).toBeTruthy();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeTruthy();
+        expectActions("7aBf9", 1);
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "discard_player_card",
+          "player": "7aBf9",
+          "card": {
+            "type": "location",
+            "location": "Toronto"
+          }
+        });
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "build_research_center",
+          "location": "Toronto"
+        });
+        expectReplayMatch(game);
+      });
+
+      it('refuses to build a research center without the card', function() {
+        gameSetup();
+        expect(game.act("7aBf9", { "name": "action_drive", "location": "Chicago" })).toBeTruthy();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it('stops building research centers when they run out', function() {
+        gameDef.research_centers_available = 1;
+        gameSetup();
+        expect(game.act("7aBf9", { "name": "action_drive", "location": "Chicago" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "location": "Toronto" })).toBeTruthy();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it('refuses to build a research center when it already exists', function() {
+        var cards = gameDef.player_cards_draw;
+        gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
+        console.log(gameDef.player_cards_draw);
+        gameSetup();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+    });
   });
 });

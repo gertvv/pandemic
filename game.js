@@ -3,7 +3,7 @@ var clone = require('clone');
 
 function nameMatcher(name) {
   return function(arg) {
-    return arg.name == name;
+    return arg.name === name;
   };
 }
 
@@ -258,20 +258,83 @@ function Game(eventSink, randy) {
   };
 
   this.act = function(player, action) {
-    if (action.name == "action_pass") {
+    if (action.name.match(/^action_/)) {
       if (this.situation.state.name !== "player_actions") {
         return false;
       }
       if (player !== this.situation.state.player) {
         return false;
       }
+
+      if (action.name === "action_pass") {
+      } else if (action.name === "action_drive") {
+        var thePlayer = this.findPlayer(player);
+        var source = this.findLocation(thePlayer.location);
+        if (!_.contains(source.adjacent, action.location)) {
+          return false;
+        }
+        thePlayer.location = action.location;
+        eventSink.emit({
+          "event_type": "move_pawn",
+          "player": player,
+          "location": action.location
+        });
+      } else if (action.name === "action_treat_disease") {
+        var thePlayer = this.findPlayer(player);
+        var location = this.findLocation(thePlayer.location);
+        var disease = this.findDisease(action.disease);
+        if (location.infections[disease.name] === 0) {
+          return false;
+        }
+        location.infections[disease.name]--;
+        disease.cubes++;
+        eventSink.emit({
+          "event_type": "treat_disease",
+          "location": location.name,
+          "disease": disease.name,
+          "number": 1
+        });
+      } else if (action.name === "action_build_research_center") {
+        var thePlayer = this.findPlayer(player);
+        if (this.situation.research_centers_available === 0) {
+          return false;
+        }
+        if (_.find(this.situation.research_centers, function(center) {
+          return center.location === thePlayer.location; })) {
+          return false;
+        };
+        var card = _.find(thePlayer.hand, function(card) {
+          return card.location === thePlayer.location;
+        });
+        if (!card) {
+          return false;
+        }
+
+        eventSink.emit({
+          "event_type": "discard_player_card",
+          "player": player,
+          "card": card
+        });
+        thePlayer.hand.splice(_.indexOf(thePlayer.hand, card), 1);
+        this.situation.player_cards_discard.unshift(card);
+
+        eventSink.emit({
+          "event_type": "build_research_center",
+          "location": thePlayer.location
+        });
+        this.situation.research_centers.push({ "location": thePlayer.location });
+        this.situation.research_centers_available--;
+      } else {
+        return false;
+      }
+
       this.situation.state.actions_remaining--;
       if (this.situation.state.actions_remaining === 0) {
         this.situation.state = draw_player_cards_state(player);
       }
       this.emitStateChange();
       return true;
-    } else if (action.name == "draw_player_card") {
+    } else if (action.name === "draw_player_card") {
       if (this.situation.state.name !== "draw_player_cards") {
         return false;
       }
@@ -285,7 +348,7 @@ function Game(eventSink, randy) {
         this.startInfectionPhase(player);
       }
       return true;
-    } else if (action.name == "increase_infection_intensity") {
+    } else if (action.name === "increase_infection_intensity") {
       if (this.situation.state.name !== "epidemic") {
         return false;
       }
@@ -309,7 +372,7 @@ function Game(eventSink, randy) {
         this.startInfectionPhase(player);
       }
       return true;
-    } else if (action.name == "draw_infection_card") {
+    } else if (action.name === "draw_infection_card") {
       if (this.situation.state.name !== "draw_infection_cards") {
         return false;
       }

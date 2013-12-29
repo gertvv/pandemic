@@ -29,8 +29,8 @@
           <div class="row collapse">
             <div class="columns">
               <ul class="no-bullet">
-                <li ng-repeat="user in users | orderBy:'name'" data-tooltip title="ID:{{user.id}}" class="has-tip label {{user.type}}" style="margin-right: 2px;">
-                    {{user.name}}
+                <li ng-repeat="user in users | orderBy:'name'" style="margin-right: 2px;">
+                  <pandemic-user player-id="{{user.id}}" />
                 </li>
               </ul>
             </div>
@@ -75,10 +75,32 @@
       ng-show="user.id == game.owner">Start game</button>
   </div>
   <div class="columns large-8" ng-controller="ActionsCtrl" ng-if="game.state != 'lobby'">
+    <div>
+      <h4>Current status</h4>
+      <div class="row">
+        <div class="columns large-6">
+          <h5>Players</h5>
+          <ul class="no-bullet">
+            <li ng-repeat="player in game.situation.players">
+              <pandemic-user player-id="{{player.id}}"></pandemic-user>
+              <pandemic-role role="{{player.role}}"></pandemic-role>
+            </li>
+          </ul>
+        </div>
+        <div class="columns large-6">
+          <h5>Your hand</h5>
+          <ul class="no-bullet">
+            <li ng-repeat="card in currentPlayer().hand">
+              <pandemic-card card="card" />
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
     <div ng-show="game.situation.state.name == 'player_actions' &&
         game.situation.state.player == user.id">
       <h4>Player actions</h4>
-      <div>{{game.situation.state.actions_remaining}} actions remaining</div>
+      <p>{{game.situation.state.actions_remaining}} actions remaining</p>
       <div class="row">
         <div class="columns large-6">
           <h5>Drive / ferry</h5>
@@ -148,13 +170,13 @@
               </div>
             </div>
           </form>
-          <h5>Build research station</h5>
+          <h5>Build research center</h5>
           <form>
             <div class="row">
               <div class="columns large-8">
               </div>
               <div class="columns large-4">
-                <button class="button postfix" ng-click="buildResearchStation()">Go</button>
+                <button class="button postfix" ng-click="buildResearchCenter()">Go</button>
               </div>
             </div>
           </form>
@@ -199,6 +221,6 @@
         ng-click="increaseInfectionIntensity()"
         ng-disabled="game.situation.state.name != 'epidemic'">Increase infection intensity</button>
     </div>
-    <pre>{{game.situation.state | json}}</pre>
+    <pre>{{game.situation.players | json}}</pre>
   </div>
 </div>

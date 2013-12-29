@@ -1,39 +1,39 @@
+var clone = angular.copy; // provide for replay.js
+_.isEqual = angular.equals; // override so that .$$hashKey is ignored
+
 var app = angular.module('pandemic', ['ui.router', 'ngCookies']);
 
 app.factory('GameState', function() {
-  function handleGameEvent(e) {
-    if (e.event_type === "initial_situation") {
+  var replay;
+
+  function attachEventListeners() {
+    replay.initial_situation.push(function(e) {
       console.log(e);
       service.game.state = "in progress";
-      service.game.situation = e.situation;
-    }
-    if (e.event_type === "infect") {
-      var location = _.find(service.game.situation.locations,
-        function(location) { return location.name === e.location; });
-      location.infections[e.disease]++;
-      var disease = _.find(service.game.situation.diseases,
-        function(disease) { return disease.name === e.disease; });
-      disease.cubes--;
-      $scope.$broadcast("updateInfections", location.name);
-    }
-    if (e.event_type === "outbreak") {
-      service.game.situation.outbreak_count++;
-    }
-    if (e.event_type === "infection_rate_increased") {
-      service.game.situation.infection_rate_index++;
-    }
-    if (e.event_type === "state_change") {
-      service.game.situation.state = e.state;
-    }
+    });
+    replay.infect.push(function(e) {
+      $scope.$broadcast("updateInfections", e.location);
+    });
+    replay.treat_disease.push(function(e) {
+      $scope.$broadcast("updateInfections", e.location);
+    });
+    replay.move_pawn.push(function(e) {
+      $scope.$broadcast("updatePawnLocations", e.location);
+    });
+    replay.build_research_center.push(function(e) {
+      $scope.$broadcast("updateResearchCenters", e.location);
+    });
   }
 
   function setGame(game, scope) {
     $scope = scope;
     if (socket) {
-      //socket.close();
       init();
     }
     if (game) {
+      replay = new Replay();
+      attachEventListeners();
+      game.situation = replay.situation;
       service.game = game;
       var host = window.document.location.host;
       var ws = 'ws://' + host + game.ws;
@@ -46,7 +46,7 @@ app.factory('GameState', function() {
 
       socket.on('event', function(data) {
         $scope.$apply(function() {
-          handleGameEvent(data);
+          replay.receive(data);
           service.log.push({"type": "event", "data": data});
         });
       });
@@ -117,6 +117,27 @@ app.controller('ActionsCtrl', function($scope, GameState) {
   $scope.pass = function() {
     GameState.act({ "name": "action_pass" });
   };
+  $scope.drive = function(location) {
+    GameState.act({ "name": "action_drive", "location": location });
+  };
+  $scope.directFlight = function(location) {
+    GameState.act({ "name": "action_direct_flight", "location": location });
+  };
+  $scope.charterFlight = function(location) {
+    GameState.act({ "name": "action_charter_flight", "location": location });
+  };
+  $scope.shuttleFlight = function(location) {
+    GameState.act({ "name": "action_shuttle_flight", "location": location });
+  };
+  $scope.treatDisease = function(disease) {
+    GameState.act({ "name": "action_treat_disease", "disease": disease });
+  };
+  $scope.buildResearchCenter = function() {
+    GameState.act({ "name": "action_build_research_center" });
+  };
+  $scope.discoverCure = function() {
+    GameState.act({ "name": "action_discover_cure" });
+  };
   $scope.drawPlayerCard = function() {
     GameState.act({ "name": "draw_player_card" });
   };
@@ -125,6 +146,11 @@ app.controller('ActionsCtrl', function($scope, GameState) {
   };
   $scope.increaseInfectionIntensity = function() {
     GameState.act({ "name": "increase_infection_intensity" });
+  };
+  $scope.currentPlayer = function() {
+    return _.find(GameState.game.situation.players, function(player) {
+      return player.id === $scope.user.id;
+    })
   };
 });
 
@@ -155,6 +181,61 @@ app.directive('pandemicEvent', function(GameState) {
   };
 });
 
+app.directive('pandemicUser', function(GameState) {
+  return {
+    restrict: 'E',
+    scope: {
+      playerId: '@'
+    },
+    link: function(scope, element, attrs) {
+      scope.user = _.find(GameState.users, function(user) {
+        return user.id === scope.playerId;
+      });
+    },
+    template: '<span data-tooltip title="ID:{{user.id}}" class="has-tip label {{user.type}}">{{user.name}}</span>'
+  };
+});
+
+app.directive('pandemicRole', function(GameState) {
+  return {
+    restrict: 'E',
+    scope: {
+      role: '@'
+    },
+    link: function(scope, element, attrs) {
+      scope.info = _.find(GameState.game.situation.roles, function(role) {
+        return role.name === scope.role;
+      });
+    },
+    template: '<span class="label secondary" style="background-color:{{info.color}}; color:black;">{{info.name}}</span>'
+  };
+});
+
+app.directive('pandemicCard', function(GameState) {
+  return {
+    restrict: 'E',
+    scope: {
+      card: '='
+    },
+    link: function(scope, element, attrs) {
+      if (scope.card.type === 'location') {
+        var location = _.find(GameState.game.situation.locations, function(location) {
+          return location.name === scope.card.location;
+        });
+        scope.disease = _.find(GameState.game.situation.diseases, function(disease) {
+          return disease.name === location.disease;
+        });
+      } else if (scope.card.type === 'special') {
+        scope.special = _.find(GameState.game.situation.specials, function(special) {
+          return special.name === scope.card.special;
+        });
+
+      }
+    },
+    template: '<span ng-if="card.type == \'location\'"><span style="background-color:{{disease.color}}; width: 15px; height: 15px; display:inline-block; margin-right: 4px;"></span>{{card.location}}</span><span ng-if="card.type == \'special\'"><span style="width: 15px; height: 15px; display:inline-block; margin-right: 4px; font-weight: bold; text-align: center; background-color: #b3dbea; font-size: 60%">?</span>{{special.title}}</span>'
+  };
+});
+
 app.directive('locationMarker', function(GameState) {
   return {
     restrict: 'E',
@@ -166,21 +247,24 @@ app.directive('locationMarker', function(GameState) {
       var situation = GameState.game.situation;
       scope.locationMarker = situation.location_marker_size;
 
-      var players = _.filter(situation.players, function(player) {
-        return player.location === scope.location.name;
-      });
-
-      scope.players = _.map(players, function(player) {
-        var role = _.find(situation.roles, function(role) {
-          return role.name === player.role;
+      function updatePawnLocations() {
+        var players = _.filter(situation.players, function(player) {
+          return player.location === scope.location.name;
         });
-        return { 'color': role.color };
-      });
 
-      scope.researchCenter = _.find(situation.research_centers, function(center) {
-        return center.location === scope.location.name;
-      });
+        scope.players = _.map(players, function(player) {
+          var role = _.find(situation.roles, function(role) {
+            return role.name === player.role;
+          });
+          return { 'color': role.color };
+        });
+      }
 
+      function updateResearchCenters() {
+        scope.researchCenter = _.find(situation.research_centers, function(center) {
+          return center.location === scope.location.name;
+        });
+      }
 
       function updateInfections() {
         scope.infections = _.map(situation.diseases, function(disease) {
@@ -192,7 +276,15 @@ app.directive('locationMarker', function(GameState) {
         });
       }
 
+      updatePawnLocations();
+      updateResearchCenters();
       updateInfections();
+      scope.$on('updatePawnLocations', function(event, args) {
+        updatePawnLocations();
+      });
+      scope.$on('updateResearchCenters', function(event, args) {
+        updateResearchCenters();
+      });
       scope.$on('updateInfections', function(event, args) {
         if (args === scope.location.name) updateInfections();
       });
