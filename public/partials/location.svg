@@ -1,0 +1,23 @@
+<svg>
+	<g ng-attr-transform="translate({{location.x - 4}},{{location.y + locationMarker.height}})">
+	  <g ng-repeat="infection in infections"
+       ng-attr-transform="translate({{$index*9}},-8)">
+      <rect ng-repeat="level in infection.levels"
+            width="8"
+            height="8"
+            ng-attr-y="{{$index*-9}}"
+            ng-attr-fill="{{infection.color}}"
+            stroke="lime" />
+    </g>
+    <circle ng-repeat="player in players"
+            cx="-4"
+            ng-attr-cy="{{-5 + $index * -13}}"
+            fill="{{player.color}}"
+            stroke="white"
+            r="6" />
+    <polygon ng-if="researchCenter"
+             ng-attr-transform="translate({{locationMarker.width / 2}}, -4)"
+             points="5,0 11,4 11,12 -2,12 -2,4"
+             fill="white" stroke="black" />
+  </g>
+</svg>

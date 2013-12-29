@@ -1,7 +1,0 @@
-<svg>
-	<g ng-attr-transform="translate({{location.x}},{{location.y + locationMarker.height}})">
-	  <g ng-repeat="infection in infections" ng-attr-transform="translate({{$index*9}},-8)">
-      <rect ng-repeat="level in infection.levels" width="8" height="8" ng-attr-y="{{$index*-9}}" ng-attr-style="fill:{{infection.color}}" stroke="lime" />
-    </g>
-  </g>
-</svg>

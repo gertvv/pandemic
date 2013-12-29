@@ -12,7 +12,7 @@
         ng-attr-cy="{{game.situation.infection_rate_levels[game.situation.infection_rate_index].y + game.situation.infection_rate_marker_size.width / 2}}"
         ng-attr-r="{{game.situation.infection_rate_marker_size.width / 2}}"
         fill="red"></circle>
-      <infections-marker ng-repeat="city in game.situation.locations" location-name="{{city.name}}" location="city" />
+      <location-marker ng-repeat="city in game.situation.locations" location-name="{{city.name}}" location="city" />
       <g ng-repeat="disease in game.situation.diseases" ng-attr-transform="translate({{disease.x + 4}}, {{disease.y - 16}})">
         <rect width="40" height="20" x="-5" y="-5" fill="white" />
         <rect width="8" height="8" ng-attr-style="fill:{{disease.color}}" />

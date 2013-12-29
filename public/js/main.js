@@ -155,7 +155,7 @@ app.directive('pandemicEvent', function(GameState) {
   };
 });
 
-app.directive('infectionsMarker', function(GameState) {
+app.directive('locationMarker', function(GameState) {
   return {
     restrict: 'E',
     replace: true,
@@ -165,6 +165,22 @@ app.directive('infectionsMarker', function(GameState) {
     link: function(scope, element, attrs) {
       var situation = GameState.game.situation;
       scope.locationMarker = situation.location_marker_size;
+
+      var players = _.filter(situation.players, function(player) {
+        return player.location === scope.location.name;
+      });
+
+      scope.players = _.map(players, function(player) {
+        var role = _.find(situation.roles, function(role) {
+          return role.name === player.role;
+        });
+        return { 'color': role.color };
+      });
+
+      scope.researchCenter = _.find(situation.research_centers, function(center) {
+        return center.location === scope.location.name;
+      });
+
 
       function updateInfections() {
         scope.infections = _.map(situation.diseases, function(disease) {
@@ -181,7 +197,7 @@ app.directive('infectionsMarker', function(GameState) {
         if (args === scope.location.name) updateInfections();
       });
     },
-    templateUrl: 'partials/infections.svg'
+    templateUrl: 'partials/location.svg'
   };
 });
 
