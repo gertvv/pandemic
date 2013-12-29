@@ -68,18 +68,118 @@
       </div>
     </div>
   </div>
-  <div class="columns large-4" ng-controller="LobbyCtrl" ng-if="game.state == 'lobby'">
+  <div class="columns large-8" ng-controller="LobbyCtrl" ng-if="game.state == 'lobby'">
     <button class="button"
       ng-click="startGame()"
       ng-disabled="user.id != game.owner || users.length < 2 || users.length > 4"
       ng-show="user.id == game.owner">Start game</button>
   </div>
-  <div class="columns large-4" ng-controller="ActionsCtrl" ng-if="game.state != 'lobby'">
-    <div ng-show="game.situation.state.name == 'player_actions'">
+  <div class="columns large-8" ng-controller="ActionsCtrl" ng-if="game.state != 'lobby'">
+    <div ng-show="game.situation.state.name == 'player_actions' &&
+        game.situation.state.player == user.id">
+      <h4>Player actions</h4>
       <div>{{game.situation.state.actions_remaining}} actions remaining</div>
-      <button class="button"
-        ng-click="pass()"
-        ng-disabled="game.situation.state.name != 'player_actions' || game.situation.state.player != user.id">Pass</button>
+      <div class="row">
+        <div class="columns large-6">
+          <h5>Drive / ferry</h5>
+          <form>
+            <div class="row">
+              <div class="columns large-8">
+                <input type="text" ng-model="driveTarget"></input>
+              </div>
+              <div class="columns large-4">
+                <button class="button postfix" ng-click="drive(driveTarget)">Go</button>
+              </div>
+            </div>
+          </form>
+          <h5>Direct flight</h5>
+          <form>
+            <div class="row">
+              <div class="columns large-8">
+                <input type="text" ng-model="directFlightTarget"></input>
+              </div>
+              <div class="columns large-4">
+                <button class="button postfix" ng-click="directFlight(directFlightTarget)">Go</button>
+              </div>
+            </div>
+          </form>
+          <h5>Charter flight</h5>
+          <form>
+            <div class="row">
+              <div class="columns large-8">
+                <input type="text" ng-model="charterFlightTarget"></input>
+              </div>
+              <div class="columns large-4">
+                <button class="button postfix" ng-click="charterFlight(charterFlightTarget)">Go</button>
+              </div>
+            </div>
+          </form>
+          <h5>Shuttle flight</h5>
+          <form>
+            <div class="row">
+              <div class="columns large-8">
+                <input type="text" ng-model="shuttleFlightTarget"></input>
+              </div>
+              <div class="columns large-4">
+                <button class="button postfix" ng-click="shuttleFlight(shuttleFlightTarget)">Go</button>
+              </div>
+            </div>
+          </form>
+          <h5>Pass</h5>
+          <form>
+            <div class="row">
+              <div class="columns large-8">
+              </div>
+              <div class="columns large-4">
+                <button class="button postfix" ng-click="pass()">Pass</button>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="columns large-6">
+          <h5>Treat disease</h5>
+          <form>
+            <div class="row">
+              <div class="columns large-8">
+                <input type="text" ng-model="diseaseToTreat"></input>
+              </div>
+              <div class="columns large-4">
+                <button class="button postfix" ng-click="treatDisease(diseaseToTreat)">Go</button>
+              </div>
+            </div>
+          </form>
+          <h5>Build research station</h5>
+          <form>
+            <div class="row">
+              <div class="columns large-8">
+              </div>
+              <div class="columns large-4">
+                <button class="button postfix" ng-click="buildResearchStation()">Go</button>
+              </div>
+            </div>
+          </form>
+          <h5>Discover cure</h5>
+          <form>
+            <div class="row">
+              <div class="columns large-8">
+              </div>
+              <div class="columns large-4">
+                <button class="button postfix" ng-click="discoverCure()">Go</button>
+              </div>
+            </div>
+          </form>
+          <h5>Share knowledge</h5>
+          <form>
+            <div class="row">
+              <div class="columns large-8">
+              </div>
+              <div class="columns large-4">
+                <button class="button postfix" ng-click="">Go</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
     <div ng-show="game.situation.state.name == 'draw_player_cards'">
       <div>{{game.situation.state.draws_remaining}} draws remaining</div>
