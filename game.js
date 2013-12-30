@@ -359,13 +359,17 @@ function Game(eventSink, randy) {
         if (location.infections[disease.name] === 0) {
           return false;
         }
-        location.infections[disease.name]--;
-        disease.cubes++;
+        var number = 1;
+        if (disease.status === "cure_discovered" || thePlayer.role === "Medic") {
+          number = location.infections[disease.name];
+        }
+        location.infections[disease.name] -= number;
+        disease.cubes += number;
         eventSink.emit({
           "event_type": "treat_disease",
           "location": location.name,
           "disease": disease.name,
-          "number": 1
+          "number": number
         });
       } else if (action.name === "action_build_research_center") {
         var thePlayer = this.findPlayer(player);
@@ -376,14 +380,16 @@ function Game(eventSink, randy) {
           return center.location === thePlayer.location; })) {
           return false;
         };
-        var card = _.find(thePlayer.hand, function(card) {
-          return card.location === thePlayer.location;
-        });
-        if (!card) {
-          return false;
-        }
 
-        this.discardPlayerCard(player, card);
+        if (thePlayer.role !== "Operations Expert") {
+          var card = _.find(thePlayer.hand, function(card) {
+            return card.location === thePlayer.location;
+          });
+          if (!card) {
+            return false;
+          }
+          this.discardPlayerCard(player, card);
+        }
 
         eventSink.emit({
           "event_type": "build_research_center",
@@ -391,6 +397,38 @@ function Game(eventSink, randy) {
         });
         this.situation.research_centers.push({ "location": thePlayer.location });
         this.situation.research_centers_available--;
+      } else if (action.name === "action_discover_cure") {
+        var self = this;
+        var thePlayer = this.findPlayer(player);
+        if (thePlayer.role === "Scientist") {
+          if (action.cards.length !== 4) return false;
+        } else {
+          if (action.cards.length !== 5) return false;
+        }
+        var cards = _.map(action.cards, function(card) {
+          return _.find(thePlayer.hand, function(handCard) {
+            return _.isEqual(handCard, card);
+          });
+        });
+        var disease = self.findDiseaseByLocation(cards[0].location);
+        if (disease.status !== "no_cure") {
+          return false;
+        }
+        if (_.some(cards, _.isUndefined)) {
+          return false;
+        }
+        if (!_.every(cards, function(card) {
+            return self.findDiseaseByLocation(card.location) === disease; })) {
+          return false;
+        }
+        _.each(cards, function(card) {
+          self.discardPlayerCard(player, card);
+        });
+        disease.status = "cure_discovered"
+        eventSink.emit({
+          "event_type": "discover_cure",
+          "disease": disease.name 
+        });
       } else {
         return false;
       }
@@ -400,7 +438,6 @@ function Game(eventSink, randy) {
         this.situation.state = draw_player_cards_state(player);
       }
       this.emitStateChange();
-      return true;
     } else if (action.name === "draw_player_card") {
       if (this.situation.state.name !== "draw_player_cards") {
         return false;
@@ -414,7 +451,6 @@ function Game(eventSink, randy) {
       if (this.situation.state.draws_remaining === 0) {
         this.startInfectionPhase(player);
       }
-      return true;
     } else if (action.name === "increase_infection_intensity") {
       if (this.situation.state.name !== "epidemic") {
         return false;
@@ -438,7 +474,6 @@ function Game(eventSink, randy) {
       } else {
         this.startInfectionPhase(player);
       }
-      return true;
     } else if (action.name === "draw_infection_card") {
       if (this.situation.state.name !== "draw_infection_cards") {
         return false;
@@ -464,9 +499,30 @@ function Game(eventSink, randy) {
         };
       }
       this.emitStateChange();
-      return true;
+    } else {
+      return false;
     }
-    return false;
+
+    var medic = _.find(this.situation.players, function(player) { return player.role === "Medic"; });
+    if (medic) {
+      var location = this.findLocation(medic.location);
+      var cured = _.filter(this.situation.diseases, function(disease) { return disease.status === "cure_discovered"; });
+      _.each(cured, function(disease) {
+        var number = location.infections[disease.name];
+        if (number > 0) {
+          location.infections[disease.name] -= number;
+          disease.cubes += number;
+          eventSink.emit({
+            "event_type": "treat_disease",
+            "location": location.name,
+            "disease": disease.name,
+            "number": number
+          });
+        }
+      });
+    }
+
+    return true;
   };
 
   return this;

@@ -890,6 +890,19 @@ describe("Game", function() {
         expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Blue"})).toBeFalsy();
         expectReplayMatch(game);
       });
+
+      it('medic treats all cubes at once', function() {
+        randy.sample = function(population, count) { return ["Medic", "Scientist"]; },
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Blue"})).toBeTruthy();
+        expectTreatment("Atlanta", "Blue", 2);
+        expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Blue"})).toBeFalsy();
+        expect(game.act("7aBf9", { "name": "action_drive", "location": "Chicago"})).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Blue"})).toBeTruthy();
+        expectTreatment("Chicago", "Blue", 3);
+        expectReplayMatch(game);
+      });
     });
 
     describe('build-research-center', function() {
@@ -921,6 +934,21 @@ describe("Game", function() {
         spyOn(emitter, "emit").andCallThrough();
         expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it('allows the operations expert to build a research center without the card', function() {
+        randy.sample = function(arr) { return [ "Operations Expert", "Medic" ]; }
+        gameSetup();
+        expect(game.act("7aBf9", { "name": "action_drive", "location": "Chicago" })).toBeTruthy();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeTruthy();
+        expectActions("7aBf9", 2);
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "build_research_center",
+          "location": "Chicago"
+        });
+        expect(emitter.emit.calls.length).toBe(2);
         expectReplayMatch(game);
       });
 
@@ -1045,6 +1073,219 @@ describe("Game", function() {
         expect(game.act("7aBf9", { "name": "action_shuttle_flight", "location": "Atlanta" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
+      });
+    });
+
+    describe("discover_cure", function() {
+      function setupAndSkipTwoTurns() {
+        randy.randInt = function(min, max) { return max; }
+        randy.sample = function(arr) { return ["Dispatcher", "Researcher"]; }
+        gameSetup();
+
+        skipTurnActions("7aBf9");
+        expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+        skipTurnActions("UIyVz");
+        expect(game.act("UIyVz", { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act("UIyVz", { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act("UIyVz", { "name": "draw_infection_card" })).toBeTruthy();
+        expect(game.act("UIyVz", { "name": "draw_infection_card" })).toBeTruthy();
+      }
+
+      it("allows to discover the cure with 5 cards", function() {
+        setupAndSkipTwoTurns();
+
+        spyOn(emitter, "emit").andCallThrough();
+        var cards = [
+          { "type": "location", "location": "San Francisco" },
+          { "type": "location", "location": "Toronto" },
+          { "type": "location", "location": "New York" },
+          { "type": "location", "location": "London" },
+          { "type": "location", "location": "Paris" }
+        ];
+        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeTruthy();
+        expectActions("7aBf9", 3);
+        _.each(cards, function(card) { expectDiscard("7aBf9", card); });
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "discover_cure",
+          "disease": "Blue"
+        });
+        expect(game.act("7aBf9", { "name": "action_treat_disease", disease: "Blue" })).toBeTruthy();
+        expectActions("7aBf9", 2);
+        expectTreatment("Atlanta", "Blue", 2);
+        expectReplayMatch(game);
+      });
+
+      it("allows the scientist to discover the cure with only 4 cards", function() {
+        randy.sample = function(arr) { return [ "Scientist", "Researcher" ]; };
+        gameSetup();
+
+        spyOn(emitter, "emit").andCallThrough();
+        var cards = [
+          { "type": "location", "location": "San Francisco" },
+          { "type": "location", "location": "Toronto" },
+          { "type": "location", "location": "New York" },
+          { "type": "location", "location": "London" }
+        ];
+        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeTruthy();
+        expectActions("7aBf9", 3);
+        _.each(cards, function(card) { expectDiscard("7aBf9", card); });
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "discover_cure",
+          "disease": "Blue"
+        });
+        expect(game.act("7aBf9", { "name": "action_treat_disease", disease: "Blue" })).toBeTruthy();
+        expectActions("7aBf9", 2);
+        expectTreatment("Atlanta", "Blue", 2);
+        expectReplayMatch(game);
+      });
+
+      it("has the medic automatically treat disease", function() {
+        randy.randInt = function(min, max) { return max; }
+        randy.sample = function(arr) { return [ "Scientist", "Medic" ]; };
+        gameSetup();
+
+        spyOn(emitter, "emit").andCallThrough();
+        var cards = [
+          { "type": "location", "location": "San Francisco" },
+          { "type": "location", "location": "Toronto" },
+          { "type": "location", "location": "New York" },
+          { "type": "location", "location": "London" }
+        ];
+        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeTruthy();
+        expectActions("7aBf9", 3);
+        _.each(cards, function(card) { expectDiscard("7aBf9", card); });
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "discover_cure",
+          "disease": "Blue"
+        });
+        expectTreatment("Atlanta", "Blue", 2);
+        expect(game.act("7aBf9", { "name": "action_treat_disease", disease: "Blue" })).toBeFalsy();
+        expect(game.act("7aBf9", { "name": "action_pass" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_pass" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_pass" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+
+        expect(game.act("UIyVz", { "name": "action_drive", "location": "Chicago" })).toBeTruthy();
+        expectTreatment("Chicago", "Blue", 3);
+        expect(game.act("UIyVz", { "name": "action_drive", "location": "Toronto" })).toBeTruthy();
+        expectTreatment("Toronto", "Blue", 3);
+        expect(game.act("UIyVz", { "name": "action_drive", "location": "Washington DC" })).toBeTruthy();
+        expectTreatment("Washington DC", "Blue", 2);
+        expect(game.act("UIyVz", { "name": "action_charter_flight", "location": "St. Petersburg" })).toBeTruthy();
+        expect(game.act("UIyVz", { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act("UIyVz", { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act("UIyVz", { "name": "draw_infection_card" })).toBeTruthy();
+        expectInfection("St. Petersburg", "Blue", 1);
+        expectTreatment("St. Petersburg", "Blue", 1);
+
+        expectReplayMatch(game);
+      });
+
+      it("checks the player owns the claimed cards", function() {
+        setupAndSkipTwoTurns();
+
+        spyOn(emitter, "emit").andCallThrough();
+        var cards = [
+          { "type": "location", "location": "San Francisco" },
+          { "type": "location", "location": "Toronto" },
+          { "type": "location", "location": "New York" },
+          { "type": "location", "location": "London" },
+          { "type": "location", "location": "Atlanta" }
+        ];
+
+        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+
+        expectReplayMatch(game);
+      });
+
+      it("checks the number of cards", function() {
+        setupAndSkipTwoTurns();
+
+        spyOn(emitter, "emit").andCallThrough();
+        var cards = [
+          { "type": "location", "location": "San Francisco" },
+          { "type": "location", "location": "Toronto" },
+          { "type": "location", "location": "New York" },
+          { "type": "location", "location": "London" }
+        ];
+
+        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+
+        cards.push({ "type": "location", "location": "Essen" });
+        cards.push({ "type": "location", "location": "Paris" });
+
+        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+
+        expectReplayMatch(game);
+      });
+
+      it("checks the cards are for the right disease", function() {
+        randy.shuffle = function(arr) {
+          var res = _.clone(arr);
+          var tmp = res[13];
+          res[13] = res[0];
+          res[0] = tmp;
+          return res;
+        };
+        setupAndSkipTwoTurns();
+
+        spyOn(emitter, "emit").andCallThrough();
+        var cards = [
+          { "type": "location", "location": "Toronto" },
+          { "type": "location", "location": "New York" },
+          { "type": "location", "location": "London" },
+          { "type": "location", "location": "Paris" },
+          { "type": "location", "location": "Cairo" }
+        ];
+
+        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+
+        cards[4] = { "type": "location", "location": "Essen" };
+        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeTruthy();
+      });
+
+      it("checks the disease has not yet been cured", function() {
+        gameDef.diseases[0].status = "cure_discovered";
+        setupAndSkipTwoTurns();
+
+        spyOn(emitter, "emit").andCallThrough();
+        var cards = [
+          { "type": "location", "location": "San Francisco" },
+          { "type": "location", "location": "Toronto" },
+          { "type": "location", "location": "New York" },
+          { "type": "location", "location": "London" },
+          { "type": "location", "location": "Paris" }
+        ];
+
+        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+      });
+
+      it("checks the disease has not been eradicated", function() {
+        gameDef.diseases[0].status = "eradicated";
+        setupAndSkipTwoTurns();
+
+        spyOn(emitter, "emit").andCallThrough();
+        var cards = [
+          { "type": "location", "location": "San Francisco" },
+          { "type": "location", "location": "Toronto" },
+          { "type": "location", "location": "New York" },
+          { "type": "location", "location": "London" },
+          { "type": "location", "location": "Paris" }
+        ];
+
+        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
       });
     });
   });

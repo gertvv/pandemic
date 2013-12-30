@@ -139,6 +139,7 @@ module.exports = {
     {
       "name": "Blue",
       "color": "#1d61ce",
+      "status": "no_cure",
       "cubes": 24,
       "x": 735,
       "y": 87
@@ -146,6 +147,7 @@ module.exports = {
     {
       "name": "Yellow",
       "color": "#f6d633",
+      "status": "no_cure",
       "cubes": 24,
       "x": 796,
       "y": 87
@@ -153,6 +155,7 @@ module.exports = {
     {
       "name": "Black",
       "color": "#363636",
+      "status": "no_cure",
       "cubes": 24,
       "x": 857,
       "y": 87
@@ -160,6 +163,7 @@ module.exports = {
     {
       "name": "Red",
       "color": "#c21b08",
+      "status": "no_cure",
       "cubes": 24,
       "x": 918,
       "y": 87

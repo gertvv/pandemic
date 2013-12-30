@@ -99,6 +99,14 @@ var Replay = function() {
     }
   ];
 
+  this.discover_cure = [
+    function(e) {
+      var disease = _.find(situation.diseases,
+          function(disease) { return disease.name === e.disease; });
+      disease.status = "cure_discovered";
+    }
+  ];
+
   this.receive = function(e) {
     _.each(this[e.event_type], function(f) { f(e) });
   }
