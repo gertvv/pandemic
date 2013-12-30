@@ -23,7 +23,8 @@
     "foundation": "~5.0.2",
     "angular-ui-sortable": "~0.10.0",
     "angular-cookies": "~1.2.6",
-    "underscore": "~1.5.2"
+    "underscore": "~1.5.2",
+    "angular-ui-autocomplete": "*"
   },
   "resolutions": {
     "angular": "1.2.6"

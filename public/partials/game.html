@@ -164,7 +164,7 @@
           </div>
           <div class="row">
             <div class="columns large-8">
-              <input type="text" ng-model="driveTarget"></input>
+              <input type="text" ng-model="driveTarget" ui-autocomplete="locationAutocomplete">
             </div>
             <div class="columns large-4">
               <button ng-show="currentPlayer().role != 'Dispatcher'" class="button postfix" ng-click="drive(driveTarget)">Go</button>
@@ -187,7 +187,7 @@
           </div>
           <div class="row">
             <div class="columns large-8">
-              <input type="text" ng-model="directFlightTarget"></input>
+              <input type="text" ng-model="directFlightTarget" ui-autocomplete="locationAutocomplete"></input>
             </div>
             <div class="columns large-4">
               <button class="button postfix" ng-click="directFlight(directFlightTarget)">Go</button>
@@ -209,7 +209,7 @@
           </div>
           <div class="row">
             <div class="columns large-8">
-              <input type="text" ng-model="charterFlightTarget"></input>
+              <input type="text" ng-model="charterFlightTarget" ui-autocomplete="locationAutocomplete"></input>
             </div>
             <div class="columns large-4">
               <button class="button postfix" ng-click="charterFlight(charterFlightTarget)">Go</button>
@@ -231,7 +231,7 @@
           </div>
           <div class="row">
             <div class="columns large-8">
-              <input type="text" ng-model="shuttleFlightTarget"></input>
+              <input type="text" ng-model="shuttleFlightTarget" ui-autocomplete="locationAutocomplete"></input>
             </div>
             <div class="columns large-4">
               <button class="button postfix" ng-click="shuttleFlight(shuttleFlightTarget)">Go</button>
@@ -253,7 +253,7 @@
           </div>
           <div class="row">
             <div class="columns large-8">
-              <input type="text" ng-model="shuttleFlightTarget"></input>
+              <input type="text" ng-model="shuttleFlightTarget" ui-autocomplete="locationAutocomplete"></input>
             </div>
             <div class="columns large-4">
               <button class="button postfix" ng-click="converge(convergeTarget, playerToMove)">Go</button>
@@ -323,3 +323,4 @@
     </div>
   </div>
 </div>
+<div style="height: 200px;"></div>

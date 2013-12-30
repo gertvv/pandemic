@@ -21,3 +21,8 @@
   background-color: rgb(240, 65, 36); // $alert-color;
   color: white;
 }
+
+.ui-autocomplete {
+  font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
+  font-size: 0.875rem;
+}

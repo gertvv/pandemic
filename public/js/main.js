@@ -1,7 +1,7 @@
 var clone = angular.copy; // provide for replay.js
 _.isEqual = angular.equals; // override so that .$$hashKey is ignored
 
-var app = angular.module('pandemic', ['ui.router', 'ui.sortable', 'ngCookies']);
+var app = angular.module('pandemic', ['ui.router', 'ui.sortable', 'ui.autocomplete', 'ngCookies']);
 
 app.factory('GameState', function() {
   var replay;
@@ -153,6 +153,11 @@ app.controller('ActionsCtrl', function($scope, GameState) {
     return _.find(GameState.game.situation.players, function(player) {
       return player.id === $scope.user.id;
     })
+  };
+  $scope.locationAutocomplete = {
+    options: {
+      source: _.map(GameState.game.situation.locations, function(location) { return location.name; })
+    }
   };
   $scope.playerToMove = { "id": $scope.user.id };
 });
