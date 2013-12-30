@@ -329,6 +329,29 @@ function Game(eventSink, randy) {
           "player": player,
           "location": action.location
         });
+      } else if (action.name === "action_shuttle_flight") {
+        var thePlayer = this.findPlayer(player);
+        var origin = thePlayer.location;
+        var destination = action.location;
+        if (origin === destination) {
+          return false;
+        }
+        if (!_.find(this.situation.research_centers, function(center) {
+          return center.location === origin;
+        })) {
+          return false;
+        }
+        if (!_.find(this.situation.research_centers, function(center) {
+          return center.location === destination;
+        })) {
+          return false;
+        }
+        thePlayer.location = action.location;
+        eventSink.emit({
+          "event_type": "move_pawn",
+          "player": player,
+          "location": action.location
+        });
       } else if (action.name === "action_treat_disease") {
         var thePlayer = this.findPlayer(player);
         var location = this.findLocation(thePlayer.location);

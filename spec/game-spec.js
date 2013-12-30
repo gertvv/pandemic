@@ -1007,5 +1007,45 @@ describe("Game", function() {
         expectReplayMatch(game);
       });
     });
+
+    describe('shuttle_flight', function() {
+      it('allows a shuttle flight', function() {
+        gameSetup();
+        expect(game.act("7aBf9", { "name": "action_drive", "location": "Chicago" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "location": "San Francisco" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeTruthy();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "location": "Atlanta" })).toBeTruthy();
+        expectDrawState("7aBf9", 2);
+        expectMove("7aBf9", "Atlanta");
+        expect(emitter.emit.calls.length).toBe(2);
+        expectReplayMatch(game);
+      });
+
+      it('refuses a flight to the current location', function() {
+        gameSetup();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "location": "Atlanta" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it('refuses a flight without a destination research center', function() {
+        gameSetup();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "location": "Hong Kong" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it('refuses a flight without a source research center', function() {
+        gameSetup();
+        expect(game.act("7aBf9", { "name": "action_drive", "location": "Chicago" })).toBeTruthy();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "location": "Atlanta" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+    });
   });
 });
