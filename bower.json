@@ -1,0 +1,31 @@
+{
+  "name": "pandemic",
+  "version": "0.0.1",
+  "authors": [
+    "Gert van Valkenhoef <g.h.m.van.valkenhoef@rug.nl>"
+  ],
+  "description": "Pandemic Board Game",
+  "main": "/public/js/main.js",
+  "license": "GPL-3",
+  "homepage": "http://gertvv.nl/",
+  "private": true,
+  "directory": "public/bower_components",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "1.2.6",
+    "angular-ui-router": "0.2.7",
+    "foundation": "~5.0.2",
+    "angular-ui-sortable": "~0.10.0",
+    "angular-cookies": "~1.2.6",
+    "underscore": "~1.5.2"
+  },
+  "resolutions": {
+    "angular": "1.2.6"
+  }
+}
