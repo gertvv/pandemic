@@ -100,110 +100,144 @@
         </div>
       </div>
     </div>
+    <h4>Player actions</h4>
     <div ng-show="game.situation.state.name == 'player_actions' &&
         game.situation.state.player == user.id">
-      <h4>Player actions</h4>
+      <ul class="button-group radius">
+        <li><a class="button small" ng-click="currentAction = 'action_drive'">Drive / ferry</a></li>
+        <li><a class="button small" ng-click="currentAction = 'action_direct_flight'">Direct flight</a></li>
+        <li><a class="button small" ng-click="currentAction = 'action_charter_flight'">Charter flight</a></li>
+        <li><a class="button small" ng-click="currentAction = 'action_shuttle_flight'">Shuttle flight</a></li>
+        <li><a class="button small" ng-click="currentAction = 'action_pass'">Pass</a></li>
+      </ul>
+      <ul class="button-group radius">
+        <li><a class="button small" ng-click="currentAction = 'action_treat_disease'">Treat disease</a></li>
+        <li><a class="button small" ng-click="currentAction = 'action_build_research_center'">Build research center</a></li>
+        <li><a class="button small" ng-click="currentAction = 'action_discover_cure'">Discover cure</a></li>
+        <li><a class="button small" ng-click="currentAction = 'action_share_knowledge'">Share knowledge</a></li>
+      </ul>
       <p>{{game.situation.state.actions_remaining}} actions remaining</p>
-      <div class="row">
-        <div class="columns large-6">
-          <h5>Drive / ferry</h5>
-          <form>
-            <div class="row">
-              <div class="columns large-8">
-                <input type="text" ng-model="driveTarget"></input>
-              </div>
-              <div class="columns large-4">
-                <button class="button postfix" ng-click="drive(driveTarget)">Go</button>
-              </div>
+
+      <div ng-show="currentAction == 'action_drive'">
+        <h5>Drive / ferry</h5>
+        <form>
+          <div class="row">
+            <div class="columns large-8">
+              <input type="text" ng-model="driveTarget"></input>
             </div>
-          </form>
-          <h5>Direct flight</h5>
-          <form>
-            <div class="row">
-              <div class="columns large-8">
-                <input type="text" ng-model="directFlightTarget"></input>
-              </div>
-              <div class="columns large-4">
-                <button class="button postfix" ng-click="directFlight(directFlightTarget)">Go</button>
-              </div>
+            <div class="columns large-4">
+              <button class="button postfix" ng-click="drive(driveTarget)">Go</button>
             </div>
-          </form>
-          <h5>Charter flight</h5>
-          <form>
-            <div class="row">
-              <div class="columns large-8">
-                <input type="text" ng-model="charterFlightTarget"></input>
-              </div>
-              <div class="columns large-4">
-                <button class="button postfix" ng-click="charterFlight(charterFlightTarget)">Go</button>
-              </div>
+          </div>
+        </form>
+      </div>
+
+      <div ng-show="currentAction == 'action_direct_flight'">
+        <h5>Direct flight</h5>
+        <form>
+          <div class="row">
+            <div class="columns large-8">
+              <input type="text" ng-model="directFlightTarget"></input>
             </div>
-          </form>
-          <h5>Shuttle flight</h5>
-          <form>
-            <div class="row">
-              <div class="columns large-8">
-                <input type="text" ng-model="shuttleFlightTarget"></input>
-              </div>
-              <div class="columns large-4">
-                <button class="button postfix" ng-click="shuttleFlight(shuttleFlightTarget)">Go</button>
-              </div>
+            <div class="columns large-4">
+              <button class="button postfix" ng-click="directFlight(directFlightTarget)">Go</button>
             </div>
-          </form>
-          <h5>Pass</h5>
-          <form>
-            <div class="row">
-              <div class="columns large-8">
-              </div>
-              <div class="columns large-4">
-                <button class="button postfix" ng-click="pass()">Pass</button>
-              </div>
+          </div>
+        </form>
+      </div>
+
+      <div ng-show="currentAction == 'action_charter_flight'">
+        <h5>Charter flight</h5>
+        <form>
+          <div class="row">
+            <div class="columns large-8">
+              <input type="text" ng-model="charterFlightTarget"></input>
             </div>
-          </form>
-        </div>
-        <div class="columns large-6">
-          <h5>Treat disease</h5>
-          <form>
-            <div class="row">
-              <div class="columns large-8">
-                <input type="text" ng-model="diseaseToTreat"></input>
-              </div>
-              <div class="columns large-4">
-                <button class="button postfix" ng-click="treatDisease(diseaseToTreat)">Go</button>
-              </div>
+            <div class="columns large-4">
+              <button class="button postfix" ng-click="charterFlight(charterFlightTarget)">Go</button>
             </div>
-          </form>
-          <h5>Build research center</h5>
-          <form>
-            <div class="row">
-              <div class="columns large-8">
-              </div>
-              <div class="columns large-4">
-                <button class="button postfix" ng-click="buildResearchCenter()">Go</button>
-              </div>
+          </div>
+        </form>
+      </div>
+
+      <div ng-show="currentAction == 'action_shuttle_flight'">
+        <h5>Shuttle flight</h5>
+        <form>
+          <div class="row">
+            <div class="columns large-8">
+              <input type="text" ng-model="shuttleFlightTarget"></input>
             </div>
-          </form>
-          <h5>Discover cure</h5>
-          <form>
-            <div class="row">
-              <div class="columns large-8">
-              </div>
-              <div class="columns large-4">
-                <button class="button postfix" ng-click="discoverCure()">Go</button>
-              </div>
+            <div class="columns large-4">
+              <button class="button postfix" ng-click="shuttleFlight(shuttleFlightTarget)">Go</button>
             </div>
-          </form>
-          <h5>Share knowledge</h5>
-          <form>
-            <div class="row">
-              <div class="columns large-8">
-              </div>
-              <div class="columns large-4">
-                <button class="button postfix" ng-click="">Go</button>
-              </div>
+          </div>
+        </form>
+      </div>
+
+      <div ng-show="currentAction == 'action_pass'">
+        <h5>Pass</h5>
+        <form>
+          <div class="row">
+            <div class="columns large-8">
             </div>
-          </form>
-        </div>
+            <div class="columns large-4">
+              <button class="button postfix" ng-click="pass()">Pass</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div ng-show="currentAction == 'action_treat_disease'">
+        <h5>Treat disease</h5>
+        <form>
+          <div class="row">
+            <div class="columns large-8">
+              <input type="text" ng-model="diseaseToTreat"></input>
+            </div>
+            <div class="columns large-4">
+              <button class="button postfix" ng-click="treatDisease(diseaseToTreat)">Go</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div ng-show="currentAction == 'action_build_research_center'">
+        <h5>Build research center</h5>
+        <form>
+          <div class="row">
+            <div class="columns large-8">
+            </div>
+            <div class="columns large-4">
+              <button class="button postfix" ng-click="buildResearchCenter()">Go</button>
+            </div>
+          </div>
+        </form>
+      </div>
+      
+      <div ng-show="currentAction == 'action_discover_cure'">
+        <h5>Discover cure</h5>
+        <form>
+          <div class="row">
+            <div class="columns large-8">
+            </div>
+            <div class="columns large-4">
+              <button class="button postfix" ng-click="discoverCure()">Go</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div ng-show="currentAction == 'action_share_knowledge'">
+        <h5>Share knowledge</h5>
+        <form>
+          <div class="row">
+            <div class="columns large-8">
+            </div>
+            <div class="columns large-4">
+              <button class="button postfix" ng-click="">Go</button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
     <div ng-show="game.situation.state.name == 'draw_player_cards'">
