@@ -76,9 +76,8 @@
       ng-disabled="user.id != game.owner || users.length < 2 || users.length > 4"
       ng-show="user.id == game.owner">Start game</button>
   </div>
-  <div class="columns large-8" ng-controller="ActionsCtrl" ng-if="game.state != 'lobby'">
+  <div class="columns large-8" ng-controller="ActionsCtrl" ng-if="game.state != 'lobby' && game.situation.state">
 
-    <h4>Current status</h4>
     <div class="row">
       <div class="columns large-6">
         <h5>Players</h5>
@@ -89,6 +88,42 @@
             <span ng-show="player.id == game.situation.state.player">&larr;</span>
           </li>
         </ul>
+        <div ng-show="game.situation.state.player == user.id">
+          <h5>Your turn</h5>
+          <div ng-show="game.situation.state.name == 'player_actions'">
+            <p>{{game.situation.state.actions_remaining}} actions remaining</p>
+            <button class="button small radius" ng-click="pass()">Pass</button>
+          </div>
+          <div ng-show="game.situation.state.name == 'draw_player_cards'">
+            <p>{{game.situation.state.draws_remaining}} draws remaining</p>
+            <button class="button small radius" ng-click="drawPlayerCard()">Draw a card</button>
+          </div>
+          <div ng-show="game.situation.state.name == 'draw_infection_cards'">
+            <p>{{game.situation.state.draws_remaining}} infections remaining</p>
+            <button class="button small radius" ng-click="drawInfectionCard()">Infect</button>
+          </div>
+          <div ng-show="game.situation.state.name == 'epidemic'">
+            <p>An epidemic is in progress!</p>
+            <button class="button small radius"
+              ng-click="increaseInfectionIntensity()">Increase infection intensity</button>
+          </div>
+        </div>
+        <div ng-show="game.situation.state.player != user.id">
+          <h5>Another's turn</h5>
+          <div ng-show="game.situation.state.name == 'player_actions'">
+            <p>{{game.situation.state.actions_remaining}} actions remaining</p>
+          </div>
+          <div ng-show="game.situation.state.name == 'draw_player_cards'">
+            <p>{{game.situation.state.draws_remaining}} draws remaining</p>
+          </div>
+          <div ng-show="game.situation.state.name == 'draw_infection_cards'">
+            <p>{{game.situation.state.draws_remaining}} infections remaining</p>
+            <button class="button small radius" ng-click="drawInfectionCard()">Infect</button>
+          </div>
+          <div ng-show="game.situation.state.name == 'epidemic'">
+            <p>An epidemic is in progress!</p>
+          </div>
+        </div>
       </div>
       <div class="columns large-6">
         <h5>Your hand</h5>
@@ -100,7 +135,6 @@
       </div>
     </div>
 
-    <h4>Player actions</h4>
     <div ng-show="game.situation.state.name == 'player_actions' &&
         game.situation.state.player == user.id">
       <ul class="button-group radius">
@@ -108,7 +142,7 @@
         <li><a class="button small" ng-click="currentAction = 'action_direct_flight'">Direct flight</a></li>
         <li><a class="button small" ng-click="currentAction = 'action_charter_flight'">Charter flight</a></li>
         <li><a class="button small" ng-click="currentAction = 'action_shuttle_flight'">Shuttle flight</a></li>
-        <li><a class="button small" ng-click="currentAction = 'action_pass'">Pass</a></li>
+        <li><a class="button small" ng-click="currentAction = 'action_converge'">Converge</a></li>
       </ul>
       <ul class="button-group radius">
         <li><a class="button small" ng-click="currentAction = 'action_treat_disease'">Treat disease</a></li>
@@ -116,10 +150,10 @@
         <li><a class="button small" ng-click="currentAction = 'action_discover_cure'">Discover cure</a></li>
         <li><a class="button small" ng-click="currentAction = 'action_share_knowledge'">Share knowledge</a></li>
       </ul>
-      <p>{{game.situation.state.actions_remaining}} actions remaining</p>
 
       <div ng-show="currentAction == 'action_drive'">
         <h5>Drive / ferry</h5>
+        <p>Move your pawn to an adjacent city. The <pandemic-role role="Dispatcher"></pandemic-role> may also move another player's pawn instead.</p>
         <form>
           <div class="row">
             <div class="columns large-8">
@@ -134,6 +168,7 @@
 
       <div ng-show="currentAction == 'action_direct_flight'">
         <h5>Direct flight</h5>
+        <p>Play a card from your hand and move your pawn to that city. The <pandemic-role role="Dispatcher"></pandemic-role> may also move another player's pawn instead.</p>
         <form>
           <div class="row">
             <div class="columns large-8">
@@ -148,6 +183,7 @@
 
       <div ng-show="currentAction == 'action_charter_flight'">
         <h5>Charter flight</h5>
+        <p>Play the card corresponding to your pawn’s current location, and move to any city on the board. The <pandemic-role role="Dispatcher"></pandemic-role> may also move another player's pawn instead.</p>
         <form>
           <div class="row">
             <div class="columns large-8">
@@ -162,6 +198,7 @@
 
       <div ng-show="currentAction == 'action_shuttle_flight'">
         <h5>Shuttle flight</h5>
+        <p>If your pawn is in a city with a Research Station, move it to any other city with a Research Station. The <pandemic-role role="Dispatcher"></pandemic-role> may also move another player's pawn instead.</p>
         <form>
           <div class="row">
             <div class="columns large-8">
@@ -174,14 +211,15 @@
         </form>
       </div>
 
-      <div ng-show="currentAction == 'action_pass'">
-        <h5>Pass</h5>
+      <div ng-show="currentAction == 'action_converge'">
+        <h5>Converge</h5>
+        <p>The <pandemic-role role="Dispatcher"></pandemic-role> can move a pawn to any city that contains another pawn.</p>
         <form>
           <div class="row">
             <div class="columns large-8">
             </div>
             <div class="columns large-4">
-              <button class="button postfix" ng-click="pass()">Pass</button>
+              <button class="button postfix" ng-click="converge()">Pass</button>
             </div>
           </div>
         </form>
@@ -189,6 +227,7 @@
 
       <div ng-show="currentAction == 'action_treat_disease'">
         <h5>Treat disease</h5>
+        <p>Remove a disease cube from the city your pawn occupies. If the cure has been discovered, or if you are the <pandemic-role role="Medic"></pandemic-role>, remove <em>all</em> cubes of that color instead.</p>
         <form>
           <div class="row">
             <div class="columns large-8">
@@ -203,6 +242,7 @@
 
       <div ng-show="currentAction == 'action_build_research_center'">
         <h5>Build research center</h5>
+        <p>Play the card corresponding to the city your pawn currently occupies, then place a research station in that city. The <pandemic-role role="Operations Expert"></pandemic-role> does not have to play the card.
         <form>
           <div class="row">
             <div class="columns large-8">
@@ -216,6 +256,8 @@
       
       <div ng-show="currentAction == 'action_discover_cure'">
         <h5>Discover cure</h5>
+        <p>If your pawn is in a city with a Research Station, discard 5 cards of the same color to cure the corresponding disease. The <pandemic-role role="Scientist"></pandemic-role> only needs 4 cards of a color to discover the cure.</p>
+        <p>The top 5 (or 4) cards from your hand will be used to discover the cure. Drag and drop to sort your hand.</p>
         <form>
           <div class="row">
             <div class="columns large-8">
@@ -229,6 +271,8 @@
 
       <div ng-show="currentAction == 'action_share_knowledge'">
         <h5>Share knowledge</h5>
+        <p>Transfer a card from one player to another. Both your pawn and your fellow player's pawn must be in the same city, and you may only transfer the card of the city that you are in together.
+        The <pandemic-role role="Researcher"></pandemic-role> may give a fellow player <em>any</em> card from his hand, but this applies only when he is <em>giving</em> a card, not when <em>receiving</em> a card.</p>
         <form>
           <div class="row">
             <div class="columns large-8">
@@ -239,24 +283,6 @@
           </div>
         </form>
       </div>
-    </div>
-    <div ng-show="game.situation.state.name == 'draw_player_cards'">
-      <div>{{game.situation.state.draws_remaining}} draws remaining</div>
-      <button class="button"
-        ng-click="drawPlayerCard()"
-        ng-disabled="game.situation.state.name != 'draw_player_cards' || game.situation.state.player != user.id">Draw a card</button>
-    </div>
-    <div ng-show="game.situation.state.name == 'draw_infection_cards'">
-      <div>{{game.situation.state.draws_remaining}} draws remaining</div>
-      <button class="button"
-        ng-click="drawInfectionCard()"
-        ng-disabled="game.situation.state.name != 'draw_infection_cards' || game.situation.state.player != user.id">Infect</button>
-    </div>
-    <div ng-show="game.situation.state.name == 'epidemic'">
-      <div>{{game.situation.state.draws_remaining}} draws remaining</div>
-      <button class="button"
-        ng-click="increaseInfectionIntensity()"
-        ng-disabled="game.situation.state.name != 'epidemic'">Increase infection intensity</button>
     </div>
   </div>
 </div>
