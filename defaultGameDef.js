@@ -2,7 +2,9 @@ module.exports = {
   "map": {
     "url": "img/map.jpg",
     "width": 1024,
-    "height": 724
+    "height": 545,
+    "offset_y": -50,
+    "offset_x": 0
   },
   "research_centers_available": 6,
   "max_outbreaks": 7,
