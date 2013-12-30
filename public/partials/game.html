@@ -155,12 +155,20 @@
         <h5>Drive / ferry</h5>
         <p>Move your pawn to an adjacent city. The <pandemic-role role="Dispatcher"></pandemic-role> may also move another player's pawn instead.</p>
         <form>
+          <div ng-show="currentPlayer().role == 'Dispatcher'">
+            <span>Choose the player to move:</span>
+            <span ng-repeat="player in game.situation.players">
+              <input type="radio" ng-model="playerToMove.id" ng-attr-value="{{player.id}}">
+              <pandemic-role role="{{player.role}}"></pandemic-role>
+            </span>
+          </div>
           <div class="row">
             <div class="columns large-8">
               <input type="text" ng-model="driveTarget"></input>
             </div>
             <div class="columns large-4">
-              <button class="button postfix" ng-click="drive(driveTarget)">Go</button>
+              <button ng-show="currentPlayer().role != 'Dispatcher'" class="button postfix" ng-click="drive(driveTarget)">Go</button>
+              <button ng-show="currentPlayer().role == 'Dispatcher'" class="button postfix" ng-click="drive(driveTarget, playerToMove)">Go</button>
             </div>
           </div>
         </form>
@@ -170,6 +178,13 @@
         <h5>Direct flight</h5>
         <p>Play a card from your hand and move your pawn to that city. The <pandemic-role role="Dispatcher"></pandemic-role> may also move another player's pawn instead.</p>
         <form>
+          <div ng-show="currentPlayer().role == 'Dispatcher'">
+            <span>Choose the player to move:</span>
+            <span ng-repeat="player in game.situation.players">
+              <input type="radio" ng-model="playerToMove.id" ng-attr-value="{{player.id}}">
+              <pandemic-role role="{{player.role}}"></pandemic-role>
+            </span>
+          </div>
           <div class="row">
             <div class="columns large-8">
               <input type="text" ng-model="directFlightTarget"></input>
@@ -185,6 +200,13 @@
         <h5>Charter flight</h5>
         <p>Play the card corresponding to your pawn’s current location, and move to any city on the board. The <pandemic-role role="Dispatcher"></pandemic-role> may also move another player's pawn instead.</p>
         <form>
+          <div ng-show="currentPlayer().role == 'Dispatcher'">
+            <span>Choose the player to move:</span>
+            <span ng-repeat="player in game.situation.players">
+              <input type="radio" ng-model="playerToMove.id" ng-attr-value="{{player.id}}">
+              <pandemic-role role="{{player.role}}"></pandemic-role>
+            </span>
+          </div>
           <div class="row">
             <div class="columns large-8">
               <input type="text" ng-model="charterFlightTarget"></input>
@@ -200,6 +222,13 @@
         <h5>Shuttle flight</h5>
         <p>If your pawn is in a city with a Research Station, move it to any other city with a Research Station. The <pandemic-role role="Dispatcher"></pandemic-role> may also move another player's pawn instead.</p>
         <form>
+          <div ng-show="currentPlayer().role == 'Dispatcher'">
+            <span>Choose the player to move:</span>
+            <span ng-repeat="player in game.situation.players">
+              <input type="radio" ng-model="playerToMove.id" ng-attr-value="{{player.id}}">
+              <pandemic-role role="{{player.role}}"></pandemic-role>
+            </span>
+          </div>
           <div class="row">
             <div class="columns large-8">
               <input type="text" ng-model="shuttleFlightTarget"></input>
@@ -214,12 +243,20 @@
       <div ng-show="currentAction == 'action_converge'">
         <h5>Converge</h5>
         <p>The <pandemic-role role="Dispatcher"></pandemic-role> can move a pawn to any city that contains another pawn.</p>
-        <form>
+        <form ng-show="currentPlayer().role == 'Dispatcher'">
+          <div>
+            <span>Choose the player to move:</span>
+            <span ng-repeat="player in game.situation.players">
+              <input type="radio" ng-model="playerToMove.id" ng-attr-value="{{player.id}}">
+              <pandemic-role role="{{player.role}}"></pandemic-role>
+            </span>
+          </div>
           <div class="row">
             <div class="columns large-8">
+              <input type="text" ng-model="shuttleFlightTarget"></input>
             </div>
             <div class="columns large-4">
-              <button class="button postfix" ng-click="converge()">Pass</button>
+              <button class="button postfix" ng-click="converge(convergeTarget, playerToMove)">Go</button>
             </div>
           </div>
         </form>

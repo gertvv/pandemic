@@ -154,6 +154,7 @@ app.controller('ActionsCtrl', function($scope, GameState) {
       return player.id === $scope.user.id;
     })
   };
+  $scope.playerToMove = { "id": $scope.user.id };
 });
 
 app.filter('reverse', function() {
