@@ -1,7 +1,7 @@
 var clone = angular.copy; // provide for replay.js
 _.isEqual = angular.equals; // override so that .$$hashKey is ignored
 
-var app = angular.module('pandemic', ['ui.router', 'ngCookies']);
+var app = angular.module('pandemic', ['ui.router', 'ui.sortable', 'ngCookies']);
 
 app.factory('GameState', function() {
   var replay;
@@ -136,7 +136,9 @@ app.controller('ActionsCtrl', function($scope, GameState) {
     GameState.act({ "name": "action_build_research_center" });
   };
   $scope.discoverCure = function() {
-    GameState.act({ "name": "action_discover_cure" });
+    var player = $scope.currentPlayer();
+    var n = player.role === "Scientist" ? 4 : 5;
+    GameState.act({ "name": "action_discover_cure", "cards": angular.copy(player.hand.slice(0, n)) });
   };
   $scope.drawPlayerCard = function() {
     GameState.act({ "name": "draw_player_card" });

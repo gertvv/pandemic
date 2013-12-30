@@ -410,11 +410,11 @@ function Game(eventSink, randy) {
             return _.isEqual(handCard, card);
           });
         });
-        var disease = self.findDiseaseByLocation(cards[0].location);
-        if (disease.status !== "no_cure") {
+        if (_.some(cards, _.isUndefined)) {
           return false;
         }
-        if (_.some(cards, _.isUndefined)) {
+        var disease = self.findDiseaseByLocation(cards[0].location);
+        if (disease.status !== "no_cure") {
           return false;
         }
         if (!_.every(cards, function(card) {
