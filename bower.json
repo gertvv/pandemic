@@ -24,7 +24,7 @@
     "angular-ui-sortable": "~0.10.0",
     "angular-cookies": "~1.2.6",
     "underscore": "~1.5.2",
-    "angular-ui-autocomplete": "*"
+    "angular-ui-autocomplete": "~0.5.4"
   },
   "resolutions": {
     "angular": "1.2.6"
