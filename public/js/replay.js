@@ -5,6 +5,10 @@ var Replay = function() {
   var situation = {};
   this.situation = situation;
 
+  function findPlayer(id) {
+    return _.find(situation.players, function(player) { return player.id === id; });
+  }
+
   this.initial_situation = [
     function(e) {
       _.extend(situation, clone(e.situation));
@@ -45,14 +49,14 @@ var Replay = function() {
     function(e) {
       var index = indexOfEqual(situation.player_cards_draw, e.card);
       var removed = situation.player_cards_draw.splice(index, 1);
-      var player = _.find(situation.players, function(player) { return player.id === e.player; });
+      var player = findPlayer(e.player);
       if (e.card.type !== "epidemic") player.hand.push(removed[0]);
     }
   ];
 
   this.discard_player_card = [
     function(e) {
-      var player = _.find(situation.players, function(player) { return player.id === e.player; });
+      var player = findPlayer(e.player);
       var index = indexOfEqual(player.hand, e.card);
       var removed = player.hand.splice(index, 1);
       situation.player_cards_discard.unshift(removed[0]);
@@ -93,8 +97,7 @@ var Replay = function() {
 
   this.move_pawn = [
     function(e) {
-      var player = _.find(situation.players,
-          function(player) { return player.id === e.player; });
+      var player = findPlayer(e.player);
       player.location = e.location;
     }
   ];
@@ -104,6 +107,16 @@ var Replay = function() {
       var disease = _.find(situation.diseases,
           function(disease) { return disease.name === e.disease; });
       disease.status = "cure_discovered";
+    }
+  ];
+
+  this.transfer_player_card = [
+    function(e) {
+      var from = findPlayer(e.from_player);
+      var to = findPlayer(e.to_player);
+      var index = indexOfEqual(from.hand, e.card);
+      var card = from.hand.splice(index, 1);
+      to.hand.push(card[0]);
     }
   ];
 

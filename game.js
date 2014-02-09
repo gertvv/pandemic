@@ -269,6 +269,31 @@ function Game(eventSink, randy) {
   };
 
   this.act = function(player, action) {
+    if (action.name === "refuse_action") {
+      if (this.situation.state.name !== "approve_action") {
+        return false;
+      }
+      if (this.situation.state.approve_player !== player) {
+        return false;
+      }
+      this.situation.state = this.situation.state.parent;
+      this.emitStateChange();
+      return true;
+    }
+
+    var approved = false;
+    if (action.name === "approve_action") {
+      if (this.situation.state.name !== "approve_action") {
+        return false;
+      }
+      if (this.situation.state.approve_player !== player) {
+        return false;
+      }
+      action = this.situation.state.approve_action;
+      player = this.situation.state.player;
+      this.situation.state = this.situation.state.parent;
+      approved = true;
+    }
 
     if (action.name.match(/^action_/)) {
       if (this.situation.state.name !== "player_actions") {
@@ -429,6 +454,49 @@ function Game(eventSink, randy) {
           "event_type": "discover_cure",
           "disease": disease.name 
         });
+      } else if (action.name === "action_share_knowledge") {
+        var from = this.findPlayer(action.from_player);
+        var to = this.findPlayer(action.to_player);
+        if (!from || !to || from.id == to.id) {
+          return false;
+        }
+        var card = _.find(from.hand, function(card) {
+          return card.location === action.location; })
+        if (!card) {
+          return false;
+        }
+        if (from.location !== to.location) {
+          return false;
+        }
+        if (from.role !== "Researcher" && from.location !== action.location) {
+          return false;
+        }
+        if (player === to.id || player === from.id) {
+          var other = player === to.id ? from.id : to.id;
+          if (!approved) {
+            this.situation.state = {
+              "name": "approve_action",
+              "player": player,
+              "approve_player": other,
+              "approve_action": action,
+              "parent": this.situation.state,
+              "terminal": false
+            };
+            this.emitStateChange();
+            return true;
+          } else {
+            from.hand.splice(_.indexOf(from.hand, card), 1);
+            to.hand.push(card);
+            eventSink.emit({
+              "event_type": "transfer_player_card",
+              "from_player": from.id,
+              "to_player": to.id,
+              "card": card
+            });
+          }
+        } else {
+          return false;
+        }
       } else {
         return false;
       }

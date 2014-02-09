@@ -382,7 +382,7 @@ describe("Game", function() {
         }
       });
     });
-  });
+  }); // .setup()
 
   describe(".act()", function() {
     var game;
@@ -1287,6 +1287,201 @@ describe("Game", function() {
         expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
       });
+    }); // discover_cure
+
+    describe('share_knowledge', function() {
+      it('allows giving the current location', function() {
+        randy.randInt = function(min, max) { return max; }
+        gameSetup();
+        skipTurnActions("7aBf9");
+        expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+
+        spyOn(emitter, 'emit').andCallThrough();
+
+        expect(game.act("UIyVz",
+            { "name": "action_share_knowledge",
+              "location": "Atlanta",
+              "from_player": "UIyVz",
+              "to_player": "7aBf9" })).toBeTruthy();
+
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "state_change",
+          "state": {
+            "name": "approve_action",
+            "player": "UIyVz",
+            "approve_player": "7aBf9",
+            "approve_action": {
+              "name": "action_share_knowledge",
+              "location": "Atlanta",
+              "from_player": "UIyVz",
+              "to_player": "7aBf9"
+            },
+            "parent": {
+              "name": "player_actions",
+              "player": "UIyVz",
+              "actions_remaining": 4,
+              "terminal": false
+            },
+            "terminal": false
+          }
+        });
+        expect(emitter.emit.calls.length).toBe(1);
+
+        expect(game.act("UIyVz", { "name": "approve_action" })).toBeFalsy();
+        expect(game.act("7aBf9", { "name": "approve_action" })).toBeTruthy();
+
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "transfer_player_card",
+          "from_player": "UIyVz",
+          "to_player": "7aBf9",
+          "card": { "type": "location", "location": "Atlanta" }
+        });
+        expectActions("UIyVz", 3);
+        expect(emitter.emit.calls.length).toBe(3);
+
+        // As the card has been transferred, the action is now impossible
+        expect(game.act("UIyVz",
+            { "name": "action_share_knowledge",
+              "location": "Atlanta",
+              "from_player": "UIyVz",
+              "to_player": "7aBf9" })).toBeFalsy();
+        // But we are allowed to reverse it
+        expect(game.act("UIyVz",
+            { "name": "action_share_knowledge",
+              "location": "Atlanta",
+              "from_player": "7aBf9",
+              "to_player": "UIyVz" })).toBeTruthy();
+
+        expectReplayMatch(game);
+      });
+
+      it('allows receiving the current location', function() {
+        gameSetup();
+
+        spyOn(emitter, 'emit').andCallThrough();
+
+        expect(game.act("7aBf9",
+            { "name": "action_share_knowledge",
+              "location": "Atlanta",
+              "from_player": "UIyVz",
+              "to_player": "7aBf9" })).toBeTruthy();
+
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "state_change",
+          "state": {
+            "name": "approve_action",
+            "player": "7aBf9",
+            "approve_player": "UIyVz",
+            "approve_action": {
+              "name": "action_share_knowledge",
+              "location": "Atlanta",
+              "from_player": "UIyVz",
+              "to_player": "7aBf9"
+            },
+            "parent": {
+              "name": "player_actions",
+              "player": "7aBf9",
+              "actions_remaining": 4,
+              "terminal": false
+            },
+            "terminal": false
+          }
+        });
+
+        expectReplayMatch(game);
+      });
+
+      it('allows the other player to refuse the action', function() {
+        gameSetup();
+
+        expect(game.act("7aBf9",
+            { "name": "action_share_knowledge",
+              "location": "Atlanta",
+              "from_player": "UIyVz",
+              "to_player": "7aBf9" })).toBeTruthy();
+
+        spyOn(emitter, 'emit').andCallThrough();
+
+        expect(game.act("7aBf9", { "name": "refuse_action" })).toBeFalsy();
+        expect(game.act("UIyVz", { "name": "refuse_action" })).toBeTruthy();
+
+        expectActions("7aBf9", 4);
+
+        expectReplayMatch(game);
+      });
+
+      it('does not allow giving another location', function() {
+        gameSetup();
+        expect(game.act("7aBf9",
+            { "name": "action_share_knowledge",
+              "location": "San Francisco",
+              "from_player": "7aBf9",
+              "to_player": "UIyVz" })).toBeFalsy();
+
+        expectReplayMatch(game);
+      });
+
+      it('does not allow receiving another location', function() {
+        gameSetup();
+        expect(game.act("7aBf9",
+            { "name": "action_share_knowledge",
+              "location": "Chicago",
+              "from_player": "UIyVz",
+              "to_player": "7aBf9" })).toBeFalsy();
+
+        expectReplayMatch(game);
+      });
+
+      it('allows the researcher to give any location', function() {
+        randy.sample = function(arr) { return ["Researcher", "Medic"]; };
+        gameSetup();
+        expect(game.act("7aBf9",
+            { "name": "action_share_knowledge",
+              "location": "San Francisco",
+              "from_player": "7aBf9",
+              "to_player": "UIyVz" })).toBeTruthy();
+
+        expectReplayMatch(game);
+      });
+
+      it('does not allow the researcher to receive any location', function() {
+        randy.sample = function(arr) { return ["Researcher", "Medic"]; };
+        gameSetup();
+        expect(game.act("7aBf9",
+            { "name": "action_share_knowledge",
+              "location": "Chicago",
+              "from_player": "UIyVz",
+              "to_player": "7aBf9" })).toBeFalsy();
+
+        expectReplayMatch(game);
+      });
+
+      it('requires both players to be in the same location', function() {
+        randy.sample = function(arr) { return ["Researcher", "Medic"]; };
+        gameSetup();
+        expect(game.act("7aBf9", { "name": "action_drive", "location": "Chicago" })).toBeTruthy();
+        expect(game.act("7aBf9",
+            { "name": "action_share_knowledge",
+              "location": "San Francisco",
+              "from_player": "7aBf9",
+              "to_player": "UIyVz" })).toBeFalsy();
+
+        expectReplayMatch(game);
+      });
+      
+      it('checks availability of the card', function() {
+        gameSetup();
+        expect(game.act("7aBf9",
+            { "name": "action_share_knowledge",
+              "location": "Atlanta",
+              "from_player": "7aBf9",
+              "to_player": "UIyVz" })).toBeFalsy();
+
+        expectReplayMatch(game);
+      });
     });
-  });
-});
+  }); // .act()
+}); // Game
