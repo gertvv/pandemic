@@ -140,6 +140,29 @@ app.controller('ActionsCtrl', function($scope, GameState) {
     var n = player.role === "Scientist" ? 4 : 5;
     GameState.act({ "name": "action_discover_cure", "cards": angular.copy(player.hand.slice(0, n)) });
   };
+  $scope.shareKnowledgePartner = { "id": null };
+  $scope.shareKnowledge = function() {
+    var player = $scope.currentPlayer().id;
+    var other = $scope.shareKnowledgePartner.id;
+    var mode = $scope.shareKnowledgeType;
+    var location = $scope.shareKnowledgeLocation;
+    if (!location || !other || !mode) return;
+    if (mode == "give") {
+      GameState.act({
+        "name": "action_share_knowledge",
+        "from_player": player,
+        "to_player": other,
+        "location": location
+      });
+    } else if (mode == "receive") {
+      GameState.act({
+        "name": "action_share_knowledge",
+        "from_player": other,
+        "to_player": player,
+        "location": location
+      });
+    }
+  };
   $scope.drawPlayerCard = function() {
     GameState.act({ "name": "draw_player_card" });
   };
@@ -148,6 +171,12 @@ app.controller('ActionsCtrl', function($scope, GameState) {
   };
   $scope.increaseInfectionIntensity = function() {
     GameState.act({ "name": "increase_infection_intensity" });
+  };
+  $scope.approveAction = function() {
+    GameState.act({ "name": "approve_action" });
+  };
+  $scope.refuseAction = function() {
+    GameState.act({ "name": "refuse_action" });
   };
   $scope.currentPlayer = function() {
     return _.find(GameState.game.situation.players, function(player) {
@@ -160,6 +189,9 @@ app.controller('ActionsCtrl', function($scope, GameState) {
     }
   };
   $scope.playerToMove = { "id": $scope.user.id };
+  $scope.otherPlayer = function(player) {
+    return player.id !== $scope.currentPlayer().id;
+  };
 });
 
 app.filter('reverse', function() {

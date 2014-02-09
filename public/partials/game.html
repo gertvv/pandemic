@@ -107,6 +107,9 @@
             <button class="button small radius"
               ng-click="increaseInfectionIntensity()">Increase infection intensity</button>
           </div>
+          <div ng-show="game.situation.state.name == 'approve_action'">
+            <p>Waiting for {{ game.situation.state.approve_player }} to approve your action</p>
+          </div>
         </div>
         <div ng-show="game.situation.state.player != user.id">
           <h5>Another's turn</h5>
@@ -123,6 +126,14 @@
           <div ng-show="game.situation.state.name == 'epidemic'">
             <p>An epidemic is in progress!</p>
           </div>
+          <div ng-show="game.situation.state.name == 'approve_action'">
+            <p>Waiting for {{ game.situation.state.approve_player }} to approve {{ game.situation.state.player}}'s action</p>
+          </div>
+        </div>
+        <div ng-show="game.situation.state.approve_player == user.id">
+          <p>Approve {{ game.situation.state.approve_action }}?</p>
+          <button class="button small radius" ng-click="approveAction()">Approve</button>
+          <button class="button small radius alert" ng-click="refuseAction()">Refuse</button>
         </div>
       </div>
       <div class="columns large-6">
@@ -253,7 +264,7 @@
           </div>
           <div class="row">
             <div class="columns large-8">
-              <input type="text" ng-model="shuttleFlightTarget" ui-autocomplete="locationAutocomplete"></input>
+              <input type="text" ng-model="convergeTarget" ui-autocomplete="locationAutocomplete"></input>
             </div>
             <div class="columns large-4">
               <button class="button postfix" ng-click="converge(convergeTarget, playerToMove)">Go</button>
@@ -312,10 +323,28 @@
         The <pandemic-role role="Researcher"></pandemic-role> may give a fellow player <em>any</em> card from his hand, but this applies only when he is <em>giving</em> a card, not when <em>receiving</em> a card.</p>
         <form>
           <div class="row">
+            <div class="columns large-12">
+              <span>
+                <input type="radio" ng-model="shareKnowledgeType" value="give">Give
+              </span>
+              <span>
+                <input type="radio" ng-model="shareKnowledgeType" value="receive">Receive
+              </span>
+            </div>
+            <div class="columns large-12">
+              <input type="text" ng-model="shareKnowledgeLocation" ui-autocomplete="locationAutocomplete">
+            </div>
+            <div class="columns large-12">
+              <span>Choose the player to share with:</span>
+              <span ng-repeat="player in game.situation.players | filter:otherPlayer">
+                <input type="radio" ng-model="shareKnowledgePartner.id" ng-attr-value="{{player.id}}">
+                <pandemic-role role="{{player.role}}"></pandemic-role>
+              </span>
+            </div>
             <div class="columns large-8">
             </div>
             <div class="columns large-4">
-              <button class="button postfix" ng-click="">Go</button>
+              <button class="button postfix" ng-click="shareKnowledge()">Go</button>
             </div>
           </div>
         </form>
