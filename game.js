@@ -302,6 +302,12 @@ function Game(eventSink, randy) {
       if (player !== this.situation.state.player) {
         return false;
       }
+      if (action.name.match(/^action_dispatch_/)) {
+        var thePlayer = this.findPlayer(player);
+        if (thePlayer.role !== "Dispatcher") {
+          return false;
+        }
+      }
 
       if (action.name === "action_pass") {
       } else if (action.name === "action_drive") {
@@ -316,6 +322,32 @@ function Game(eventSink, randy) {
           "player": player,
           "location": action.location
         });
+      } else if (action.name === "action_dispatch_drive") {
+        var other = action.player;
+        var theOther = this.findPlayer(other);
+        var source = this.findLocation(theOther.location);
+        if (!_.contains(source.adjacent, action.location)) {
+          return false;
+        }
+        if (!approved) {
+          this.situation.state = {
+            "name": "approve_action",
+            "player": player,
+            "approve_player": other,
+            "approve_action": action,
+            "parent": this.situation.state,
+            "terminal": false
+          };
+          this.emitStateChange();
+          return true;
+        } else {
+          theOther.location = action.location;
+          eventSink.emit({
+            "event_type": "move_pawn",
+            "player": other,
+            "location": action.location
+          });
+        }
       } else if (action.name === "action_charter_flight") {
         var thePlayer = this.findPlayer(player);
         if (thePlayer.location === action.location) {

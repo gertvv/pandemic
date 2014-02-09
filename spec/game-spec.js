@@ -81,6 +81,50 @@ describe("Game", function() {
   function expectReplayMatch(game) {
     expect(game.situation).toEqual(replay.situation);
   }
+
+  // we expect the emitter to be spied on
+  function testActionRequiringApproval(game, player, remaining, action, other) {
+    var state = {
+      "name": "player_actions",
+      "player": player,
+      "actions_remaining": remaining,
+      "terminal": false
+    };
+    var request = {
+      "event_type": "state_change",
+      "state": {
+        "name": "approve_action",
+        "player": player,
+        "approve_player": other,
+        "approve_action": action,
+        "parent": state,
+        "terminal": false
+      }
+    };
+
+    // First try the action and refuse
+    emitter.emit.reset();
+    expect(game.act(player, action)).toBeTruthy();
+    expect(emitter.emit).toHaveBeenCalledWith(request);
+    expect(emitter.emit.callCount).toBe(1);
+    emitter.emit.reset();
+    expect(game.act(player, { "name": "refuse_action" })).toBeFalsy();
+    expect(game.act(other, { "name": "refuse_action" })).toBeTruthy();
+    expect(emitter.emit).toHaveBeenCalledWith({
+      "event_type": "state_change",
+      "state": state
+    });
+    expect(emitter.emit.callCount).toBe(1);
+
+    // Now try the action and approve it
+    emitter.emit.reset();
+    expect(game.act(player, action)).toBeTruthy();
+    expect(emitter.emit).toHaveBeenCalledWith(request);
+    expect(emitter.emit.callCount).toBe(1);
+    emitter.emit.reset();
+    expect(game.act(player, { "name": "approve_action" })).toBeFalsy();
+    expect(game.act(other, { "name": "approve_action" })).toBeTruthy();
+  }
   
   describe(".setup()", function() {
     it("should assign roles, locations, hands", function() {
@@ -852,6 +896,46 @@ describe("Game", function() {
       });
 
       it('tracks the updated location', function() {
+        gameSetup();
+        expect(game.act("7aBf9", { "name": "action_drive", "location": "Washington DC"})).toBeTruthy();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_drive", "location": "New York"})).toBeTruthy();
+        expectActions("7aBf9", 2);
+        expectMove("7aBf9", "New York");
+        expectReplayMatch(game);
+      });
+    });
+
+    describe('dispatch_drive', function() {
+      it('allows to move another player to an adjacent location', function() {
+        randy.sample = function(arr) { return ["Dispatcher", "Researcher"]; }
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+
+        var action = {
+          "name": "action_dispatch_drive",
+          "player": "UIyVz",
+          "location": "Washington DC"
+        };
+        testActionRequiringApproval(game, "7aBf9", 4, action, "UIyVz");
+
+        expectActions("7aBf9", 3);
+        expectMove("UIyVz", "Washington DC");
+        expectReplayMatch(game);
+      });
+
+      xit('is not allowed for non-dispatcher', function() {
+      });
+
+      xit('refuses to move to a non-adjacent location', function() {
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_drive", "location": "Algiers"})).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      xit('tracks the updated location', function() {
         gameSetup();
         expect(game.act("7aBf9", { "name": "action_drive", "location": "Washington DC"})).toBeTruthy();
         spyOn(emitter, 'emit').andCallThrough();
