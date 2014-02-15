@@ -29,13 +29,6 @@ Make sure you have jasmine-node installed:
 TODO
 ----
 
- - implement dispatcher
-    [x] drive
-    [x] charter flight
-    [x] direct flight
-    [x] shuttle flight
-    [x] converge
- - hand limit
  - eradicate disease
  - defeat: run out of player cards
  - victory

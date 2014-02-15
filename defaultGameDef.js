@@ -87,6 +87,7 @@ module.exports = {
     ],
   "initial_infections": [ 3, 3, 3, 2, 2, 2, 1, 1, 1 ],
   "initial_player_cards": { 2: 4, 3: 3, 4: 2 },
+  "max_player_cards": 7,
   "roles": [
     {
       "name": "Dispatcher",

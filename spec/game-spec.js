@@ -530,6 +530,93 @@ describe("Game", function() {
       expectReplayMatch(game);
     });
 
+    describe("discard_player_card", function() {
+      it("allows the active player to discard a card", function() {
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act(player1, { "name": "discard_player_card", "card": gameDef.player_cards_draw[0] })).toBeTruthy();
+        expectDiscard(player1, gameDef.player_cards_draw[0]);
+        expectReplayMatch(game);
+      });
+
+      it("allows other players to discard card a card", function() {
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act(player2, { "name": "discard_player_card", "card": gameDef.player_cards_draw[1] })).toBeTruthy();
+        expectDiscard(player2, gameDef.player_cards_draw[1]);
+        expectReplayMatch(game);
+      });
+
+      it("does not allow discarding cards that are not held", function() {
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act(player1, { "name": "discard_player_card", "card": gameDef.player_cards_draw[1] })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it("does not allow the same card to be discarded twice", function() {
+        gameSetup();
+        expect(game.act(player1, { "name": "discard_player_card", "card": gameDef.player_cards_draw[0] })).toBeTruthy();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act(player1, { "name": "discard_player_card", "card": gameDef.player_cards_draw[0] })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it("allows discarding during draw_player_cards phase", function() {
+        gameSetup();
+        skipTurnActions(player1);
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act(player2, { "name": "discard_player_card", "card": gameDef.player_cards_draw[1] })).toBeTruthy();
+        expectDiscard(player2, gameDef.player_cards_draw[1]);
+        expectReplayMatch(game);
+      });
+
+      it("allows discarding during draw_infection_cards phase", function() {
+        randy.randInt = function(min, max) { return max; }
+        gameSetup();
+        skipTurnActions(player1);
+        expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act(player2, { "name": "discard_player_card", "card": gameDef.player_cards_draw[1] })).toBeTruthy();
+        expectDiscard(player2, gameDef.player_cards_draw[1]);
+        expectReplayMatch(game);
+      });
+    });
+
+    it("forces players to discard cards when hand limit exceeded", function() {
+      gameDef.max_player_cards = 5;
+      randy.randInt = function(min, max) { return max; }
+      gameSetup();
+
+      skipTurnActions(player1);
+      spyOn(emitter, 'emit').andCallThrough();
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+      expectDraw(player1, gameDef.player_cards_draw[8]);
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+      expectDraw(player1, gameDef.player_cards_draw[9]);
+      expect(emitter.emit).toHaveBeenCalledWith({
+        "event_type": "state_change",
+        "state": {
+          "name": "hand_limit_exceeded",
+          "player": player1,
+          "parent": {
+            "name": "draw_player_cards",
+            "player": player1,
+            "draws_remaining": 0,
+            "terminal": false
+          },
+          "terminal": false
+        }
+      });
+      expect(game.act(player1, { "name": "discard_player_card", "card": gameDef.player_cards_draw[9] })).toBeTruthy();
+      expectInfectionState(player1, 2);
+
+      expectReplayMatch(game);
+    });
+
     it("handles epidemics appropriately", function() {
       var nInfections = gameDef.infection_cards_draw.length;
       gameSetup();
@@ -1750,6 +1837,70 @@ describe("Game", function() {
               "location": "Atlanta",
               "from_player": player1,
               "to_player": player2 })).toBeFalsy();
+
+        expectReplayMatch(game);
+      });
+
+      it('forces the player to discard excess cards', function() {
+        gameDef.max_player_cards = 4;
+        gameSetup();
+
+        spyOn(emitter, 'emit').andCallThrough();
+
+        expect(game.act(player1,
+            { "name": "action_share_knowledge",
+              "location": "Atlanta",
+              "from_player": player2,
+              "to_player": player1 })).toBeTruthy();
+
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "state_change",
+          "state": {
+            "name": "approve_action",
+            "player": player1,
+            "approve_player": player2,
+            "approve_action": {
+              "name": "action_share_knowledge",
+              "location": "Atlanta",
+              "from_player": player2,
+              "to_player": player1
+            },
+            "parent": {
+              "name": "player_actions",
+              "player": player1,
+              "actions_remaining": 4,
+              "terminal": false
+            },
+            "terminal": false
+          }
+        });
+
+        var card = { "type": "location", "location": "Atlanta" };
+        expect(game.act(player2, { "name": "approve_action" })).toBeTruthy();
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "transfer_player_card",
+          "from_player": player2,
+          "to_player": player1,
+          "card": card
+        });
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "state_change",
+          "state": {
+            "name": "hand_limit_exceeded",
+            "player": player1,
+            "parent": {
+              "name": "player_actions",
+              "player": player1,
+              "actions_remaining": 4,
+              "terminal": false
+            },
+            "terminal": false
+          }
+        });
+
+        expect(game.act(player1, { "name": "discard_player_card", "card" : card })).toBeTruthy();
+        expectDiscard(player1, card);
+        expectActions(player1, 3);
 
         expectReplayMatch(game);
       });

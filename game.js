@@ -64,6 +64,9 @@ function Game(eventSink, randy) {
       return this.handleEpidemic();
     } else {
       this.findPlayer(player).hand.push(card);
+      if (this.findPlayer(player).hand.length > this.situation.max_player_cards) {
+        return this.handleHandLimitExceeded(player);
+      }
       return true;
     }
   }
@@ -77,6 +80,17 @@ function Game(eventSink, randy) {
     this.situation.state = {
       "name": "epidemic",
       "player": this.situation.state.player,
+      "parent": this.situation.state,
+      "terminal": false
+    };
+    this.emitStateChange();
+    return true;
+  };
+
+  this.handleHandLimitExceeded = function(player) {
+    this.situation.state = {
+      "name": "hand_limit_exceeded",
+      "player": player,
       "parent": this.situation.state,
       "terminal": false
     };
@@ -254,6 +268,30 @@ function Game(eventSink, randy) {
 
     // Give turn to first player
     this.situation.state = player_actions_state(self.situation.players[0].id);
+    this.emitStateChange();
+  };
+
+  this.resumeDrawPlayerCards = function() {
+    if (this.situation.state.parent.name !== "draw_player_cards") {
+      throw "invalid state";
+    }
+    if (this.situation.state.parent.draws_remaining > 0) {
+      this.situation.state = this.situation.state.parent;
+      this.emitStateChange();
+    } else {
+      this.startInfectionPhase(this.situation.state.parent.player);
+    }
+  };
+
+  this.resumePlayerActions = function() {
+    if (this.situation.state.parent.name !== "player_actions") {
+      throw "invalid state";
+    }
+    this.situation.state = this.situation.state.parent;
+    this.situation.state.actions_remaining--;
+    if (this.situation.state.actions_remaining === 0) {
+      this.situation.state = draw_player_cards_state(player);
+    }
     this.emitStateChange();
   };
 
@@ -589,6 +627,9 @@ function Game(eventSink, randy) {
               "to_player": to.id,
               "card": card
             });
+            if (to.hand.length > this.situation.max_player_cards) {
+              return this.handleHandLimitExceeded(to.id);
+            }
           }
         } else {
           return false;
@@ -615,6 +656,24 @@ function Game(eventSink, randy) {
       if (this.situation.state.draws_remaining === 0) {
         this.startInfectionPhase(player);
       }
+    } else if (action.name === "discard_player_card") {
+      var thePlayer = this.findPlayer(player);
+      var card = _.find(thePlayer.hand, function(card) {
+        return _.isEqual(card, action.card);
+      });
+      if (!card) {
+        return false;
+      }
+      this.discardPlayerCard(player, card);
+      if (this.situation.state.name === "hand_limit_exceeded" &&
+          this.situation.state.player === player &&
+          thePlayer.hand.length <= this.situation.max_player_cards) {
+        if (this.situation.state.parent.name === "player_actions") {
+          this.resumePlayerActions();
+        } else {
+          this.resumeDrawPlayerCards();
+        }
+      }
     } else if (action.name === "increase_infection_intensity") {
       if (this.situation.state.name !== "epidemic") {
         return false;
@@ -629,15 +688,7 @@ function Game(eventSink, randy) {
       });
       this.situation.infection_cards_discard = [];
       this.situation.infection_cards_draw = cards.concat(this.situation.infection_cards_draw);
-      if (this.situation.state.parent.name !== "draw_player_cards") {
-        throw "invalid state";
-      }
-      if (this.situation.state.parent.draws_remaining > 0) {
-        this.situation.state = this.situation.state.parent;
-        this.emitStateChange();
-      } else {
-        this.startInfectionPhase(player);
-      }
+      this.resumeDrawPlayerCards();
     } else if (action.name === "draw_infection_card") {
       if (this.situation.state.name !== "draw_infection_cards") {
         return false;

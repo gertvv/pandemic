@@ -143,6 +143,9 @@ app.controller('ActionsCtrl', function($scope, GameState) {
     var n = player.role === "Scientist" ? 4 : 5;
     GameState.act({ "name": "action_discover_cure", "cards": angular.copy(player.hand.slice(0, n)) });
   };
+  $scope.discard = function(card) {
+    GameState.act({ "name": "discard_player_card", "card": angular.copy(card) });
+  };
   $scope.shareKnowledgePartner = { "id": null };
   $scope.shareKnowledge = function() {
     var player = $scope.currentPlayer().id;

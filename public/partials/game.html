@@ -140,7 +140,8 @@
         <h5>Your hand</h5>
         <ul class="no-bullet" ui-sortable ng-model="currentPlayer().hand">
           <li ng-repeat="card in currentPlayer().hand">
-            <pandemic-card card="card" />
+            <pandemic-card card="card"></pandemic-card>
+            <i class="fa fa-trash-o" ng-click="discard(card)"></i>
           </li>
         </ul>
       </div>
