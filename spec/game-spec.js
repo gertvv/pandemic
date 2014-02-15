@@ -125,6 +125,9 @@ describe("Game", function() {
     expect(game.act(player, { "name": "approve_action" })).toBeFalsy();
     expect(game.act(other, { "name": "approve_action" })).toBeTruthy();
   }
+
+  var player1 = "7aBf9";
+  var player2 = "UIyVz";
   
   describe(".setup()", function() {
     it("should assign roles, locations, hands", function() {
@@ -881,7 +884,7 @@ describe("Game", function() {
       it('allows to move to an adjacent location', function() {
         gameSetup();
         spyOn(emitter, 'emit').andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_drive", "location": "Washington DC"})).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Washington DC"})).toBeTruthy();
         expectActions("7aBf9", 3);
         expectMove("7aBf9", "Washington DC");
         expectReplayMatch(game);
@@ -890,30 +893,38 @@ describe("Game", function() {
       it('refuses to move to a non-adjacent location', function() {
         gameSetup();
         spyOn(emitter, 'emit').andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_drive", "location": "Algiers"})).toBeFalsy();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Algiers"})).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it('refuses to move another player', function() {
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act(player1, { "name": "action_drive", "player": player2, "location": "Chicago"})).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
 
       it('tracks the updated location', function() {
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "location": "Washington DC"})).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Washington DC"})).toBeTruthy();
         spyOn(emitter, 'emit').andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_drive", "location": "New York"})).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "New York"})).toBeTruthy();
         expectActions("7aBf9", 2);
         expectMove("7aBf9", "New York");
         expectReplayMatch(game);
       });
     });
 
-    describe('dispatch_drive', function() {
+    describe('drive [dispatcher]', function() {
       it('allows to move another player to an adjacent location', function() {
         randy.sample = function(arr) { return ["Dispatcher", "Researcher"]; }
         gameSetup();
         spyOn(emitter, 'emit').andCallThrough();
 
         var action = {
-          "name": "action_dispatch_drive",
+          "name": "action_drive",
           "player": "UIyVz",
           "location": "Washington DC"
         };
@@ -924,24 +935,11 @@ describe("Game", function() {
         expectReplayMatch(game);
       });
 
-      xit('is not allowed for non-dispatcher', function() {
-      });
-
-      xit('refuses to move to a non-adjacent location', function() {
+      it('refuses to move to a non-adjacent location', function() {
         gameSetup();
         spyOn(emitter, 'emit').andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_drive", "location": "Algiers"})).toBeFalsy();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "UIyVz", "location": "Algiers"})).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
-        expectReplayMatch(game);
-      });
-
-      xit('tracks the updated location', function() {
-        gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "location": "Washington DC"})).toBeTruthy();
-        spyOn(emitter, 'emit').andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_drive", "location": "New York"})).toBeTruthy();
-        expectActions("7aBf9", 2);
-        expectMove("7aBf9", "New York");
         expectReplayMatch(game);
       });
     });
@@ -982,7 +980,7 @@ describe("Game", function() {
         expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Blue"})).toBeTruthy();
         expectTreatment("Atlanta", "Blue", 2);
         expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Blue"})).toBeFalsy();
-        expect(game.act("7aBf9", { "name": "action_drive", "location": "Chicago"})).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago"})).toBeTruthy();
         expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Blue"})).toBeTruthy();
         expectTreatment("Chicago", "Blue", 3);
         expectReplayMatch(game);
@@ -992,8 +990,8 @@ describe("Game", function() {
     describe('build-research-center', function() {
       it('allows to build a research center', function() {
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "location": "Chicago" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "action_drive", "location": "Toronto" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Toronto" })).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
         expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeTruthy();
         expectActions("7aBf9", 1);
@@ -1014,7 +1012,7 @@ describe("Game", function() {
 
       it('refuses to build a research center without the card', function() {
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "location": "Chicago" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
         expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
@@ -1024,7 +1022,7 @@ describe("Game", function() {
       it('allows the operations expert to build a research center without the card', function() {
         randy.sample = function(arr) { return [ "Operations Expert", "Medic" ]; }
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "location": "Chicago" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
         expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeTruthy();
         expectActions("7aBf9", 2);
@@ -1039,8 +1037,8 @@ describe("Game", function() {
       it('stops building research centers when they run out', function() {
         gameDef.research_centers_available = 1;
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "location": "Chicago" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "action_drive", "location": "Toronto" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Toronto" })).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
         expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
@@ -1064,11 +1062,20 @@ describe("Game", function() {
         gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_charter_flight", "location": "Hong Kong" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_charter_flight", "player": "7aBf9", "location": "Hong Kong" })).toBeTruthy();
         expectActions("7aBf9", 3);
         expectDiscard("7aBf9", { "type": "location", "location": "Atlanta" });
         expectMove("7aBf9", "Hong Kong");
         expectReplayMatch(game);
+      });
+
+      it('refuses to move another player', function() {
+        var cards = gameDef.player_cards_draw;
+        gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
+        gameSetup();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_charter_flight", "player": player2, "location": "Hong Kong" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
       });
 
       it('refuses a flight to the current location', function() {
@@ -1076,7 +1083,7 @@ describe("Game", function() {
         gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_charter_flight", "location": "Atlanta" })).toBeFalsy();
+        expect(game.act("7aBf9", { "name": "action_charter_flight", "player": "7aBf9", "location": "Atlanta" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1084,7 +1091,47 @@ describe("Game", function() {
       it('refuses a flight without a ticket', function() {
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_charter_flight", "location": "Hong Kong" })).toBeFalsy();
+        expect(game.act("7aBf9", { "name": "action_charter_flight", "player": "7aBf9", "location": "Hong Kong" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+    });
+
+    describe('charter_flight [dispatcher]', function() {
+      it('allows to charter a flight', function() {
+        randy.sample = function(arr) { return ["Dispatcher", "Researcher"]; }
+        var cards = gameDef.player_cards_draw;
+        gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
+        gameSetup();
+        spyOn(emitter, "emit").andCallThrough();
+        var action = {
+          "name": "action_charter_flight",
+          "player": "UIyVz",
+          "location": "Hong Kong"
+        };
+        testActionRequiringApproval(game, "7aBf9", 4, action, "UIyVz");
+        expectActions("7aBf9", 3);
+        expectDiscard("7aBf9", { "type": "location", "location": "Atlanta" });
+        expectMove("UIyVz", "Hong Kong");
+        expectReplayMatch(game);
+      });
+
+      it('refuses a flight to the current location', function() {
+        randy.sample = function(arr) { return ["Dispatcher", "Researcher"]; }
+        var cards = gameDef.player_cards_draw;
+        gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
+        gameSetup();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago"})).toBeTruthy();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_charter_flight", "player": "UIyVz", "location": "Atlanta" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it('refuses a flight without a ticket', function() {
+        gameSetup();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_charter_flight", "player": "UIyVz", "location": "Hong Kong" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1094,11 +1141,18 @@ describe("Game", function() {
       it('allows a direct flight', function() {
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_direct_flight", "location": "Toronto" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_direct_flight", "player": "7aBf9", "location": "Toronto" })).toBeTruthy();
         expectActions("7aBf9", 3);
         expectDiscard("7aBf9", { "type": "location", "location": "Toronto" });
         expectMove("7aBf9", "Toronto");
         expectReplayMatch(game);
+      });
+
+      it('refuses to move another player', function() {
+        gameSetup();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_direct_flight", "player": player2, "location": "Toronto" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
       });
 
       it('refuses a flight to the current location', function() {
@@ -1106,7 +1160,7 @@ describe("Game", function() {
         gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_direct_flight", "location": "Atlanta" })).toBeFalsy();
+        expect(game.act("7aBf9", { "name": "action_direct_flight", "player": "7aBf9", "location": "Atlanta" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1114,7 +1168,42 @@ describe("Game", function() {
       it('refuses a flight without a ticket', function() {
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_direct_flight", "location": "Hong Kong" })).toBeFalsy();
+        expect(game.act("7aBf9", { "name": "action_direct_flight", "player": "7aBf9", "location": "Hong Kong" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+    });
+
+    describe('direct_flight [dispatcher]', function() {
+      it('allows a direct flight', function() {
+        randy.sample = function(arr) { return ["Dispatcher", "Researcher"]; }
+        gameSetup();
+        spyOn(emitter, "emit").andCallThrough();
+        var action = { "name": "action_direct_flight", "player": player2, "location": "Toronto" };
+        testActionRequiringApproval(game, "7aBf9", 4, action, "UIyVz");
+        expectActions("7aBf9", 3);
+        expectDiscard("7aBf9", { "type": "location", "location": "Toronto" });
+        expectMove(player2, "Toronto");
+        expectReplayMatch(game);
+      });
+
+      it('refuses a flight to the current location', function() {
+        randy.sample = function(arr) { return ["Dispatcher", "Researcher"]; }
+        var cards = gameDef.player_cards_draw;
+        gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
+        gameSetup();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_direct_flight", "player": player2, "location": "Atlanta" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it('refuses a flight without a ticket', function() {
+        randy.sample = function(arr) { return ["Dispatcher", "Researcher"]; }
+        gameSetup();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_direct_flight", "player": player2, "location": "Hong Kong" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1123,21 +1212,31 @@ describe("Game", function() {
     describe('shuttle_flight', function() {
       it('allows a shuttle flight', function() {
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "location": "Chicago" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "action_drive", "location": "San Francisco" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "San Francisco" })).toBeTruthy();
         expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "location": "Atlanta" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "player": "7aBf9", "location": "Atlanta" })).toBeTruthy();
         expectDrawState("7aBf9", 2);
         expectMove("7aBf9", "Atlanta");
         expect(emitter.emit.calls.length).toBe(2);
         expectReplayMatch(game);
       });
 
+      it('refuses to move another player', function() {
+        gameSetup();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "San Francisco" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeTruthy();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "player": player2, "location": "San Francisco" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+      });
+
       it('refuses a flight to the current location', function() {
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "location": "Atlanta" })).toBeFalsy();
+        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "player": "7aBf9", "location": "Atlanta" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1145,16 +1244,61 @@ describe("Game", function() {
       it('refuses a flight without a destination research center', function() {
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "location": "Hong Kong" })).toBeFalsy();
+        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "player": "7aBf9", "location": "Hong Kong" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
 
       it('refuses a flight without a source research center', function() {
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "location": "Chicago" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "location": "Atlanta" })).toBeFalsy();
+        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "player": "7aBf9", "location": "Atlanta" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+    });
+
+    describe('shuttle_flight [dispatcher]', function() {
+      it('allows a shuttle flight', function() {
+        randy.sample = function(arr) { return ["Dispatcher", "Researcher"]; }
+        gameSetup();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "San Francisco" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeTruthy();
+        spyOn(emitter, "emit").andCallThrough();
+        var action = { "name": "action_shuttle_flight", "player": player2, "location": "San Francisco" };
+        testActionRequiringApproval(game, "7aBf9", 1, action, "UIyVz");
+        expectDrawState("7aBf9", 2);
+        expectMove(player2, "San Francisco");
+        expect(emitter.emit.calls.length).toBe(2);
+        expectReplayMatch(game);
+      });
+
+      it('refuses a flight to the current location', function() {
+        randy.sample = function(arr) { return ["Dispatcher", "Researcher"]; }
+        gameSetup();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "player": player2, "location": "Atlanta" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it('refuses a flight without a destination research center', function() {
+        randy.sample = function(arr) { return ["Dispatcher", "Researcher"]; }
+        gameSetup();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "player": player2, "location": "Hong Kong" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it('refuses a flight without a source research center', function() {
+        randy.sample = function(arr) { return ["Dispatcher", "Researcher"]; }
+        gameSetup();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": player2, "location": "Chicago" })).toBeTruthy();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "player": player2, "location": "Atlanta" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1255,13 +1399,13 @@ describe("Game", function() {
         expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
         expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
 
-        expect(game.act("UIyVz", { "name": "action_drive", "location": "Chicago" })).toBeTruthy();
+        expect(game.act("UIyVz", { "name": "action_drive", "player": "UIyVz", "location": "Chicago" })).toBeTruthy();
         expectTreatment("Chicago", "Blue", 3);
-        expect(game.act("UIyVz", { "name": "action_drive", "location": "Toronto" })).toBeTruthy();
+        expect(game.act("UIyVz", { "name": "action_drive", "player": "UIyVz", "location": "Toronto" })).toBeTruthy();
         expectTreatment("Toronto", "Blue", 3);
-        expect(game.act("UIyVz", { "name": "action_drive", "location": "Washington DC" })).toBeTruthy();
+        expect(game.act("UIyVz", { "name": "action_drive", "player": "UIyVz", "location": "Washington DC" })).toBeTruthy();
         expectTreatment("Washington DC", "Blue", 2);
-        expect(game.act("UIyVz", { "name": "action_charter_flight", "location": "St. Petersburg" })).toBeTruthy();
+        expect(game.act("UIyVz", { "name": "action_charter_flight", "player": "UIyVz", "location": "St. Petersburg" })).toBeTruthy();
         expect(game.act("UIyVz", { "name": "draw_player_card" })).toBeTruthy();
         expect(game.act("UIyVz", { "name": "draw_player_card" })).toBeTruthy();
         expect(game.act("UIyVz", { "name": "draw_infection_card" })).toBeTruthy();
@@ -1546,7 +1690,7 @@ describe("Game", function() {
       it('requires both players to be in the same location', function() {
         randy.sample = function(arr) { return ["Researcher", "Medic"]; };
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "location": "Chicago" })).toBeTruthy();
+        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
         expect(game.act("7aBf9",
             { "name": "action_share_knowledge",
               "location": "San Francisco",

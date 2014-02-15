@@ -117,17 +117,17 @@ app.controller('ActionsCtrl', function($scope, GameState) {
   $scope.pass = function() {
     GameState.act({ "name": "action_pass" });
   };
-  $scope.drive = function(location) {
-    GameState.act({ "name": "action_drive", "location": location });
+  $scope.drive = function(player, location) {
+    GameState.act({ "name": "action_drive", "player": player, "location": location });
   };
-  $scope.directFlight = function(location) {
-    GameState.act({ "name": "action_direct_flight", "location": location });
+  $scope.directFlight = function(player, location) {
+    GameState.act({ "name": "action_direct_flight", "player": player, "location": location });
   };
-  $scope.charterFlight = function(location) {
-    GameState.act({ "name": "action_charter_flight", "location": location });
+  $scope.charterFlight = function(player, location) {
+    GameState.act({ "name": "action_charter_flight", "player": player, "location": location });
   };
-  $scope.shuttleFlight = function(location) {
-    GameState.act({ "name": "action_shuttle_flight", "location": location });
+  $scope.shuttleFlight = function(player, location) {
+    GameState.act({ "name": "action_shuttle_flight", "player": player, "location": location });
   };
   $scope.treatDisease = function(disease) {
     GameState.act({ "name": "action_treat_disease", "disease": disease });

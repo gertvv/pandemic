@@ -37,5 +37,10 @@ TODO
  - defeat: run out of player cards
  - victory
  - implement dispatcher
+    [x] drive
+    [x] charter flight
+    [x] direct flight
+    [x] shuttle flight
+    [ ] converge
  - make ui-sortable work on touch devices; http://touchpunch.furf.com/
  - keep private information private (e.g. hand cards)
