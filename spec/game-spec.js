@@ -134,7 +134,7 @@ describe("Game", function() {
       spyOn(randy, "sample").andCallThrough();
       spyOn(emitter, "emit").andCallThrough();
       var game = new Game(emitter, randy);
-      game.setup(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 });
+      game.setup(gameDef, [player1, player2], { "number_of_epidemics": 4 });
       expect(randy.sample).toHaveBeenCalledWith([
         "Dispatcher",
         "Operations Expert",
@@ -146,8 +146,8 @@ describe("Game", function() {
       expect(firstEvent.event_type).toEqual("initial_situation");
       expect(firstEvent.situation.players).toEqual(
           [
-            { "id": "7aBf9", "role": "Medic", "location": "Atlanta", "hand": [] },
-            { "id": "UIyVz", "role": "Scientist", "location": "Atlanta", "hand": [] }
+            { "id": player1, "role": "Medic", "location": "Atlanta", "hand": [] },
+            { "id": player2, "role": "Scientist", "location": "Atlanta", "hand": [] }
           ]);
       expectReplayMatch(game);
     });
@@ -156,7 +156,7 @@ describe("Game", function() {
       spyOn(randy, "shuffle").andCallThrough();
       spyOn(emitter, "emit");
       var game = new Game(emitter, randy);
-      game.setup(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 });
+      game.setup(gameDef, [player1, player2], { "number_of_epidemics": 4 });
       expect(randy.shuffle).toHaveBeenCalledWith(gameDef.infection_cards_draw);
       expect(emitter.emit).toHaveBeenCalled();
       var firstEvent = emitter.emit.calls[0].args[0];
@@ -168,7 +168,7 @@ describe("Game", function() {
     it("should shuffle player cards", function() {
       spyOn(randy, "shuffle").andCallThrough();
       var game = new Game(emitter, randy);
-      game.setup(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 });
+      game.setup(gameDef, [player1, player2], { "number_of_epidemics": 4 });
       expect(randy.shuffle).toHaveBeenCalledWith(gameDef.player_cards_draw);
     });
 
@@ -176,7 +176,7 @@ describe("Game", function() {
       spyOn(randy, "randInt").andCallThrough();
       spyOn(emitter, "emit");
       var game = new Game(emitter, randy);
-      game.setup(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 });
+      game.setup(gameDef, [player1, player2], { "number_of_epidemics": 4 });
       expect(randy.randInt.calls.length).toBe(4);
 
       function epidemic(n) { return { "type": "epidemic", "number": n }; }
@@ -207,7 +207,7 @@ describe("Game", function() {
       spyOn(randy, "randInt").andCallThrough();
       spyOn(emitter, "emit");
       var game = new Game(emitter, randy);
-      game.setup(gameDef, ["7aBf9", "UIyVz", "hi7H9"], { "number_of_epidemics": 4 });
+      game.setup(gameDef, [player1, player2, "hi7H9"], { "number_of_epidemics": 4 });
       expect(randy.randInt.calls.length).toBe(4);
 
       function epidemic(n) { return { "type": "epidemic", "number": n }; }
@@ -239,7 +239,7 @@ describe("Game", function() {
       spyOn(randy, "randInt").andCallThrough();
       spyOn(emitter, "emit");
       var game = new Game(emitter, randy);
-      game.setup(gameDef, ["7aBf9", "UIyVz", "hi7H9"], { "number_of_epidemics": 4 });
+      game.setup(gameDef, [player1, player2, "hi7H9"], { "number_of_epidemics": 4 });
       expect(randy.randInt.calls.length).toBe(4);
 
       function epidemic(n) { return { "type": "epidemic", "number": n }; }
@@ -271,7 +271,7 @@ describe("Game", function() {
       spyOn(randy, "randInt").andCallThrough();
       spyOn(emitter, "emit");
       var game = new Game(emitter, randy);
-      game.setup(gameDef, ["7aBf9", "UIyVz", "hi7H9"], { "number_of_epidemics": 4 });
+      game.setup(gameDef, [player1, player2, "hi7H9"], { "number_of_epidemics": 4 });
       expect(randy.randInt.calls.length).toBe(4);
 
       function epidemic(n) { return { "type": "epidemic", "number": n }; }
@@ -301,7 +301,7 @@ describe("Game", function() {
       spyOn(randy, "randInt").andCallThrough();
       spyOn(emitter, "emit");
       var game = new Game(emitter, randy);
-      game.setup(gameDef, ["7aBf9", "UIyVz", "hi7H9", "83ynY"], { "number_of_epidemics": 6 });
+      game.setup(gameDef, [player1, player2, "hi7H9", "83ynY"], { "number_of_epidemics": 6 });
       expect(randy.randInt.calls.length).toBe(6);
 
       function epidemic(n) { return { "type": "epidemic", "number": n }; }
@@ -334,7 +334,7 @@ describe("Game", function() {
     it("should set the initial state and research centers", function() {
       spyOn(emitter, "emit");
       var game = new Game(emitter, randy);
-      game.setup(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 });
+      game.setup(gameDef, [player1, player2], { "number_of_epidemics": 4 });
       expect(emitter.emit).toHaveBeenCalled();
       var firstEvent = emitter.emit.calls[0].args[0];
       expect(firstEvent.event_type).toEqual("initial_situation");
@@ -346,8 +346,8 @@ describe("Game", function() {
     it("should copy game definition and settings to initial state", function() {
       var expectedState = _.clone(gameDef);
       expectedState.players = [
-          { "id": "7aBf9", "role": "Medic", "location": "Atlanta", "hand": [] },
-          { "id": "UIyVz", "role": "Scientist", "location": "Atlanta", "hand": [] } ];
+          { "id": player1, "role": "Medic", "location": "Atlanta", "hand": [] },
+          { "id": player2, "role": "Scientist", "location": "Atlanta", "hand": [] } ];
       expectedState.infection_cards_draw = _.clone(gameDef.infection_cards_draw).reverse();
       function epidemic(n) { return { "type": "epidemic", "number": n }; }
       var cards = _.clone(gameDef.player_cards_draw).reverse();
@@ -368,7 +368,7 @@ describe("Game", function() {
 
       spyOn(emitter, "emit");
       var game = new Game(emitter, randy);
-      game.setup(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 });
+      game.setup(gameDef, [player1, player2], { "number_of_epidemics": 4 });
       expect(emitter.emit).toHaveBeenCalled();
       var firstEvent = emitter.emit.calls[0].args[0];
       expect(firstEvent.event_type).toEqual("initial_situation");
@@ -378,7 +378,7 @@ describe("Game", function() {
     it("should carry out initial infections", function() {
       spyOn(emitter, "emit");
       var game = new Game(emitter, randy);
-      game.setup(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 });
+      game.setup(gameDef, [player1, player2], { "number_of_epidemics": 4 });
 
       var cards = _.clone(gameDef.infection_cards_draw).reverse();
 
@@ -395,7 +395,7 @@ describe("Game", function() {
 
     it("should deal initial cards to players", function() {
       spyOn(emitter, "emit");
-      var players = ["7aBf9", "UIyVz", "xiv9U"];
+      var players = [player1, player2, "xiv9U"];
       var game = new Game(emitter, randy);
       game.setup(gameDef, players, { "number_of_epidemics": 4 });
 
@@ -414,7 +414,7 @@ describe("Game", function() {
 
     it("should give the first player a turn", function() {
       spyOn(emitter, "emit");
-      var players = ["7aBf9", "UIyVz", "xiv9U"];
+      var players = [player1, player2, "xiv9U"];
       var game = new Game(emitter, randy);
       game.setup(gameDef, players, { "number_of_epidemics": 4 });
 
@@ -423,7 +423,7 @@ describe("Game", function() {
         "event_type": "state_change",
         "state": {
           "name": "player_actions",
-          "player": "7aBf9",
+          "player": player1,
           "actions_remaining": 4,
           "terminal": false
         }
@@ -440,7 +440,7 @@ describe("Game", function() {
     });
 
     function gameSetup() {
-      game.setup(gameDef, ["7aBf9", "UIyVz"], { "number_of_epidemics": 4 });
+      game.setup(gameDef, [player1, player2], { "number_of_epidemics": 4 });
     }
 
     function expectActions(player, remaining) {
@@ -482,20 +482,20 @@ describe("Game", function() {
     it("handles 'pass' by decrementing the actions", function() {
       gameSetup();
       spyOn(emitter, 'emit').andCallThrough();
-      expect(game.act("7aBf9", { "name": "action_pass" })).toBeTruthy();
-      expectActions("7aBf9", 3);
-      expect(game.act("7aBf9", { "name": "action_pass" })).toBeTruthy();
-      expectActions("7aBf9", 2);
-      expect(game.act("7aBf9", { "name": "action_pass" })).toBeTruthy();
-      expectActions("7aBf9", 1);
-      expect(game.act("7aBf9", { "name": "action_pass" })).toBeTruthy();
-      expectDrawState("7aBf9", 2);
+      expect(game.act(player1, { "name": "action_pass" })).toBeTruthy();
+      expectActions(player1, 3);
+      expect(game.act(player1, { "name": "action_pass" })).toBeTruthy();
+      expectActions(player1, 2);
+      expect(game.act(player1, { "name": "action_pass" })).toBeTruthy();
+      expectActions(player1, 1);
+      expect(game.act(player1, { "name": "action_pass" })).toBeTruthy();
+      expectDrawState(player1, 2);
       expectReplayMatch(game);
     });
 
     it("refuses 'pass' from other players", function() {
       gameSetup();
-      expect(game.act("UIyVz", { "name": "action_pass" })).toBeFalsy();
+      expect(game.act(player2, { "name": "action_pass" })).toBeFalsy();
     });
 
     function skipTurnActions(player) {
@@ -507,25 +507,25 @@ describe("Game", function() {
 
     it("refuses 'pass' when not in player_actions state", function() {
       gameSetup();
-      skipTurnActions("7aBf9");
-      expect(game.act("7aBf9", { "name": "action_pass" })).toBeFalsy();
+      skipTurnActions(player1);
+      expect(game.act(player1, { "name": "action_pass" })).toBeFalsy();
     });
 
     it("enables players to draw cards when appropriate", function() {
       randy.randInt = function(min, max) { return max; }
       gameSetup();
 
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeFalsy();
-      skipTurnActions("7aBf9");
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeFalsy();
+      skipTurnActions(player1);
       spyOn(emitter, 'emit').andCallThrough();
-      expect(game.act("UIyVz", { "name": "draw_player_card" })).toBeFalsy();
+      expect(game.act(player2, { "name": "draw_player_card" })).toBeFalsy();
       expect(emitter.emit).not.toHaveBeenCalled();
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-      expectDraw("7aBf9", gameDef.player_cards_draw[8]);
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+      expectDraw(player1, gameDef.player_cards_draw[8]);
 
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-      expectDraw("7aBf9", gameDef.player_cards_draw[9]);
-      expectInfectionState("7aBf9", 2);
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+      expectDraw(player1, gameDef.player_cards_draw[9]);
+      expectInfectionState(player1, 2);
 
       expectReplayMatch(game);
     });
@@ -533,12 +533,12 @@ describe("Game", function() {
     it("handles epidemics appropriately", function() {
       var nInfections = gameDef.infection_cards_draw.length;
       gameSetup();
-      skipTurnActions("7aBf9");
+      skipTurnActions(player1);
 
       // Drawing an epidemic
       spyOn(emitter, 'emit').andCallThrough();
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-      expectDraw("7aBf9", { "type": "epidemic", "number": 0 });
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+      expectDraw(player1, { "type": "epidemic", "number": 0 });
       //  - triggers increased infection rate
       expect(emitter.emit).toHaveBeenCalledWith({
         "event_type": "infection_rate_increased"
@@ -550,10 +550,10 @@ describe("Game", function() {
         "event_type": "state_change",
         "state": {
           "name": "epidemic",
-          "player": "7aBf9",
+          "player": player1,
           "parent": {
             "name": "draw_player_cards",
-            "player": "7aBf9",
+            "player": player1,
             "draws_remaining": 1,
             "terminal": false
           },
@@ -562,10 +562,10 @@ describe("Game", function() {
       });
 
       // No cards can be drawn in the epidemic state
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeFalsy();
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeFalsy();
 
       // Other players can not end the epidemic state
-      expect(game.act("UIyVz", { "name": "increase_infection_intensity" })).toBeFalsy();
+      expect(game.act(player2, { "name": "increase_infection_intensity" })).toBeFalsy();
 
       // At the end of the epidemic state, "increase infection intensity" 
       randy.shuffle = function(x) { return _.clone(x).reverse(); }
@@ -574,7 +574,7 @@ describe("Game", function() {
         gameDef.infection_cards_draw.slice(0,9).concat(
           gameDef.infection_cards_draw.slice(nInfections - 1, nInfections)
         ).reverse();
-      expect(game.act("7aBf9", { "name": "increase_infection_intensity" })).toBeTruthy();
+      expect(game.act(player1, { "name": "increase_infection_intensity" })).toBeTruthy();
       expect(randy.shuffle).toHaveBeenCalledWith(discarded);
       expect(emitter.emit).toHaveBeenCalledWith({
         "event_type": "infection_cards_restack",
@@ -582,7 +582,7 @@ describe("Game", function() {
       });
 
       // Then transition back to drawing player cards
-      expectDrawState("7aBf9", 1);
+      expectDrawState(player1, 1);
 
       expectReplayMatch(game);
     });
@@ -591,16 +591,16 @@ describe("Game", function() {
       var nInfections = gameDef.infection_cards_draw.length;
       randy.randInt = function(min, max) { return min + 1 };
       gameSetup();
-      skipTurnActions("7aBf9");
+      skipTurnActions(player1);
 
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
 
       spyOn(emitter, 'emit').andCallThrough();
       // Drawing an epidemic
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-      expectDraw("7aBf9", { "type": "epidemic", "number": 0 });
-      expect(game.act("7aBf9", { "name": "increase_infection_intensity" })).toBeTruthy();
-      expectInfectionState("7aBf9", 2);
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+      expectDraw(player1, { "type": "epidemic", "number": 0 });
+      expect(game.act(player1, { "name": "increase_infection_intensity" })).toBeTruthy();
+      expectInfectionState(player1, 2);
 
       expectReplayMatch(game);
     });
@@ -612,16 +612,16 @@ describe("Game", function() {
         return arr.slice(1, arr.length).concat(arr.slice(0, 1));
       };
 
-      skipTurnActions("7aBf9");
+      skipTurnActions(player1);
 
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-      expect(game.act("7aBf9", { "name": "increase_infection_intensity" })).toBeTruthy();
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "increase_infection_intensity" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
 
       spyOn(emitter, 'emit').andCallThrough();
-      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_infection_card" })).toBeTruthy();
       expectDrawInfection(gameDef.infection_cards_draw[8], 1);
-      expectInfectionState("7aBf9", 1);
+      expectInfectionState(player1, 1);
 
       expectReplayMatch(game);
     });
@@ -631,14 +631,14 @@ describe("Game", function() {
       gameSetup();
       randy.shuffle = function(x) { return _.clone(x); }
 
-      skipTurnActions("7aBf9");
+      skipTurnActions(player1);
 
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-      expect(game.act("7aBf9", { "name": "increase_infection_intensity" })).toBeTruthy();
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "increase_infection_intensity" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
 
       spyOn(emitter, 'emit').andCallThrough();
-      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_infection_card" })).toBeTruthy();
       var origin = gameDef.infection_cards_draw[nInfections - 1].location;
       var disease = findDisease(origin);
       expectOutbreak(origin, disease);
@@ -650,7 +650,7 @@ describe("Game", function() {
       expectInfection("Lagos", disease, 1);
       expectInfection("Johannesburg", disease, 1);
       expectInfection("Khartoum", disease, 1);
-      expectInfectionState("7aBf9", 1);
+      expectInfectionState(player1, 1);
 
       expectReplayMatch(game);
     });
@@ -663,14 +663,14 @@ describe("Game", function() {
       gameSetup();
       randy.shuffle = function(x) { return _.clone(x).reverse(); }
 
-      skipTurnActions("7aBf9");
+      skipTurnActions(player1);
 
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-      expect(game.act("7aBf9", { "name": "increase_infection_intensity" })).toBeTruthy();
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "increase_infection_intensity" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
 
       spyOn(emitter, 'emit').andCallThrough();
-      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_infection_card" })).toBeTruthy();
 
       // Starting situation:
       // 3: San Francisco, Chicago, Toronto
@@ -719,7 +719,7 @@ describe("Game", function() {
         { "event_type": "state_change",
           "state": {
             "name": "draw_infection_cards",
-            "player": "7aBf9",
+            "player": player1,
             "draws_remaining": 1,
             "terminal": false
           }
@@ -748,19 +748,19 @@ describe("Game", function() {
       gameSetup();
       randy.shuffle = function(x) { return _.clone(x).reverse(); }
 
-      skipTurnActions("7aBf9");
+      skipTurnActions(player1);
 
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-      expect(game.act("7aBf9", { "name": "increase_infection_intensity" })).toBeTruthy();
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "increase_infection_intensity" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
 
       spyOn(emitter, "emit").andCallThrough();
-      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_infection_card" })).toBeTruthy();
       // Current situation: 3 outbreaks
       // 3: San Francisco, Chicago, Toronto, Atlanta, New York, Washington DC
       // 2: Los Angeles
       // 1: London, Madrid, Essen, Tokyo, Manila, Mexico City
-      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_infection_card" })).toBeTruthy();
       expect(emitter.emit).toHaveBeenCalledWith({
         "event_type": "state_change",
         "state": {
@@ -782,14 +782,14 @@ describe("Game", function() {
       gameSetup();
       randy.shuffle = function(x) { return _.clone(x).reverse(); }
 
-      skipTurnActions("7aBf9");
+      skipTurnActions(player1);
 
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-      expect(game.act("7aBf9", { "name": "increase_infection_intensity" })).toBeTruthy();
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "increase_infection_intensity" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
 
       spyOn(emitter, 'emit').andCallThrough();
-      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_infection_card" })).toBeTruthy();
 
       expect(emitter.emit).toHaveBeenCalledWith({
         "event_type": "state_change",
@@ -812,19 +812,19 @@ describe("Game", function() {
       randy.randInt = function(min, max) { return max; }
       gameSetup();
 
-      skipTurnActions("7aBf9");
+      skipTurnActions(player1);
 
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_infection_card" })).toBeTruthy();
 
       spyOn(emitter, 'emit').andCallThrough();
-      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_infection_card" })).toBeTruthy();
       expect(emitter.emit).toHaveBeenCalledWith({
         "event_type": "state_change",
         "state": {
           "name": "player_actions",
-          "player": "UIyVz",
+          "player": player2,
           "actions_remaining": 4,
           "terminal": false
         }
@@ -837,24 +837,24 @@ describe("Game", function() {
       randy.randInt = function(min, max) { return max; }
       gameSetup();
 
-      skipTurnActions("7aBf9");
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-      expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
-      expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+      skipTurnActions(player1);
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_infection_card" })).toBeTruthy();
+      expect(game.act(player1, { "name": "draw_infection_card" })).toBeTruthy();
 
-      skipTurnActions("UIyVz");
-      expect(game.act("UIyVz", { "name": "draw_player_card" })).toBeTruthy();
-      expect(game.act("UIyVz", { "name": "draw_player_card" })).toBeTruthy();
-      expect(game.act("UIyVz", { "name": "draw_infection_card" })).toBeTruthy();
+      skipTurnActions(player2);
+      expect(game.act(player2, { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act(player2, { "name": "draw_player_card" })).toBeTruthy();
+      expect(game.act(player2, { "name": "draw_infection_card" })).toBeTruthy();
       spyOn(emitter, 'emit').andCallThrough();
-      expect(game.act("UIyVz", { "name": "draw_infection_card" })).toBeTruthy();
+      expect(game.act(player2, { "name": "draw_infection_card" })).toBeTruthy();
 
       expect(emitter.emit).toHaveBeenCalledWith({
         "event_type": "state_change",
         "state": {
           "name": "player_actions",
-          "player": "7aBf9",
+          "player": player1,
           "actions_remaining": 4,
           "terminal": false
         }
@@ -884,16 +884,16 @@ describe("Game", function() {
       it('allows to move to an adjacent location', function() {
         gameSetup();
         spyOn(emitter, 'emit').andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Washington DC"})).toBeTruthy();
-        expectActions("7aBf9", 3);
-        expectMove("7aBf9", "Washington DC");
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Washington DC"})).toBeTruthy();
+        expectActions(player1, 3);
+        expectMove(player1, "Washington DC");
         expectReplayMatch(game);
       });
 
       it('refuses to move to a non-adjacent location', function() {
         gameSetup();
         spyOn(emitter, 'emit').andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Algiers"})).toBeFalsy();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Algiers"})).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -908,11 +908,11 @@ describe("Game", function() {
 
       it('tracks the updated location', function() {
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Washington DC"})).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Washington DC"})).toBeTruthy();
         spyOn(emitter, 'emit').andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "New York"})).toBeTruthy();
-        expectActions("7aBf9", 2);
-        expectMove("7aBf9", "New York");
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "New York"})).toBeTruthy();
+        expectActions(player1, 2);
+        expectMove(player1, "New York");
         expectReplayMatch(game);
       });
     });
@@ -925,20 +925,20 @@ describe("Game", function() {
 
         var action = {
           "name": "action_drive",
-          "player": "UIyVz",
+          "player": player2,
           "location": "Washington DC"
         };
-        testActionRequiringApproval(game, "7aBf9", 4, action, "UIyVz");
+        testActionRequiringApproval(game, player1, 4, action, player2);
 
-        expectActions("7aBf9", 3);
-        expectMove("UIyVz", "Washington DC");
+        expectActions(player1, 3);
+        expectMove(player2, "Washington DC");
         expectReplayMatch(game);
       });
 
       it('refuses to move to a non-adjacent location', function() {
         gameSetup();
         spyOn(emitter, 'emit').andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "UIyVz", "location": "Algiers"})).toBeFalsy();
+        expect(game.act(player1, { "name": "action_drive", "player": player2, "location": "Algiers"})).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -949,8 +949,8 @@ describe("Game", function() {
         randy.sample = function(population, count) { return ["Researcher", "Scientist"]; },
         gameSetup();
         spyOn(emitter, 'emit').andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Blue"})).toBeTruthy();
-        expectActions("7aBf9", 3);
+        expect(game.act(player1, { "name": "action_treat_disease", "disease": "Blue"})).toBeTruthy();
+        expectActions(player1, 3);
         expectTreatment("Atlanta", "Blue", 1);
         expectReplayMatch(game);
       });
@@ -959,7 +959,7 @@ describe("Game", function() {
         randy.sample = function(population, count) { return ["Researcher", "Scientist"]; },
         gameSetup();
         spyOn(emitter, 'emit').andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Red"})).toBeFalsy();
+        expect(game.act(player1, { "name": "action_treat_disease", "disease": "Red"})).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -967,9 +967,9 @@ describe("Game", function() {
       it('treats until all cubes are gone', function() {
         randy.sample = function(population, count) { return ["Researcher", "Scientist"]; },
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Blue"})).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Blue"})).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Blue"})).toBeFalsy();
+        expect(game.act(player1, { "name": "action_treat_disease", "disease": "Blue"})).toBeTruthy();
+        expect(game.act(player1, { "name": "action_treat_disease", "disease": "Blue"})).toBeTruthy();
+        expect(game.act(player1, { "name": "action_treat_disease", "disease": "Blue"})).toBeFalsy();
         expectReplayMatch(game);
       });
 
@@ -977,11 +977,11 @@ describe("Game", function() {
         randy.sample = function(population, count) { return ["Medic", "Scientist"]; },
         gameSetup();
         spyOn(emitter, 'emit').andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Blue"})).toBeTruthy();
+        expect(game.act(player1, { "name": "action_treat_disease", "disease": "Blue"})).toBeTruthy();
         expectTreatment("Atlanta", "Blue", 2);
-        expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Blue"})).toBeFalsy();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago"})).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "action_treat_disease", "disease": "Blue"})).toBeTruthy();
+        expect(game.act(player1, { "name": "action_treat_disease", "disease": "Blue"})).toBeFalsy();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Chicago"})).toBeTruthy();
+        expect(game.act(player1, { "name": "action_treat_disease", "disease": "Blue"})).toBeTruthy();
         expectTreatment("Chicago", "Blue", 3);
         expectReplayMatch(game);
       });
@@ -990,14 +990,14 @@ describe("Game", function() {
     describe('build-research-center', function() {
       it('allows to build a research center', function() {
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Toronto" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Chicago" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Toronto" })).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeTruthy();
-        expectActions("7aBf9", 1);
+        expect(game.act(player1, { "name": "action_build_research_center" })).toBeTruthy();
+        expectActions(player1, 1);
         expect(emitter.emit).toHaveBeenCalledWith({
           "event_type": "discard_player_card",
-          "player": "7aBf9",
+          "player": player1,
           "card": {
             "type": "location",
             "location": "Toronto"
@@ -1012,9 +1012,9 @@ describe("Game", function() {
 
       it('refuses to build a research center without the card', function() {
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Chicago" })).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_build_research_center" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1022,10 +1022,10 @@ describe("Game", function() {
       it('allows the operations expert to build a research center without the card', function() {
         randy.sample = function(arr) { return [ "Operations Expert", "Medic" ]; }
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Chicago" })).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeTruthy();
-        expectActions("7aBf9", 2);
+        expect(game.act(player1, { "name": "action_build_research_center" })).toBeTruthy();
+        expectActions(player1, 2);
         expect(emitter.emit).toHaveBeenCalledWith({
           "event_type": "build_research_center",
           "location": "Chicago"
@@ -1037,10 +1037,10 @@ describe("Game", function() {
       it('stops building research centers when they run out', function() {
         gameDef.research_centers_available = 1;
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Toronto" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Chicago" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Toronto" })).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_build_research_center" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1050,7 +1050,7 @@ describe("Game", function() {
         gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_build_research_center" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1062,10 +1062,10 @@ describe("Game", function() {
         gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_charter_flight", "player": "7aBf9", "location": "Hong Kong" })).toBeTruthy();
-        expectActions("7aBf9", 3);
-        expectDiscard("7aBf9", { "type": "location", "location": "Atlanta" });
-        expectMove("7aBf9", "Hong Kong");
+        expect(game.act(player1, { "name": "action_charter_flight", "player": player1, "location": "Hong Kong" })).toBeTruthy();
+        expectActions(player1, 3);
+        expectDiscard(player1, { "type": "location", "location": "Atlanta" });
+        expectMove(player1, "Hong Kong");
         expectReplayMatch(game);
       });
 
@@ -1074,7 +1074,7 @@ describe("Game", function() {
         gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_charter_flight", "player": player2, "location": "Hong Kong" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_charter_flight", "player": player2, "location": "Hong Kong" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
       });
 
@@ -1083,7 +1083,7 @@ describe("Game", function() {
         gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_charter_flight", "player": "7aBf9", "location": "Atlanta" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_charter_flight", "player": player1, "location": "Atlanta" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1091,7 +1091,7 @@ describe("Game", function() {
       it('refuses a flight without a ticket', function() {
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_charter_flight", "player": "7aBf9", "location": "Hong Kong" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_charter_flight", "player": player1, "location": "Hong Kong" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1106,13 +1106,13 @@ describe("Game", function() {
         spyOn(emitter, "emit").andCallThrough();
         var action = {
           "name": "action_charter_flight",
-          "player": "UIyVz",
+          "player": player2,
           "location": "Hong Kong"
         };
-        testActionRequiringApproval(game, "7aBf9", 4, action, "UIyVz");
-        expectActions("7aBf9", 3);
-        expectDiscard("7aBf9", { "type": "location", "location": "Atlanta" });
-        expectMove("UIyVz", "Hong Kong");
+        testActionRequiringApproval(game, player1, 4, action, player2);
+        expectActions(player1, 3);
+        expectDiscard(player1, { "type": "location", "location": "Atlanta" });
+        expectMove(player2, "Hong Kong");
         expectReplayMatch(game);
       });
 
@@ -1121,9 +1121,9 @@ describe("Game", function() {
         var cards = gameDef.player_cards_draw;
         gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago"})).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Chicago"})).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_charter_flight", "player": "UIyVz", "location": "Atlanta" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_charter_flight", "player": player2, "location": "Atlanta" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1131,7 +1131,7 @@ describe("Game", function() {
       it('refuses a flight without a ticket', function() {
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_charter_flight", "player": "UIyVz", "location": "Hong Kong" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_charter_flight", "player": player2, "location": "Hong Kong" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1141,17 +1141,17 @@ describe("Game", function() {
       it('allows a direct flight', function() {
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_direct_flight", "player": "7aBf9", "location": "Toronto" })).toBeTruthy();
-        expectActions("7aBf9", 3);
-        expectDiscard("7aBf9", { "type": "location", "location": "Toronto" });
-        expectMove("7aBf9", "Toronto");
+        expect(game.act(player1, { "name": "action_direct_flight", "player": player1, "location": "Toronto" })).toBeTruthy();
+        expectActions(player1, 3);
+        expectDiscard(player1, { "type": "location", "location": "Toronto" });
+        expectMove(player1, "Toronto");
         expectReplayMatch(game);
       });
 
       it('refuses to move another player', function() {
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_direct_flight", "player": player2, "location": "Toronto" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_direct_flight", "player": player2, "location": "Toronto" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
       });
 
@@ -1160,7 +1160,7 @@ describe("Game", function() {
         gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_direct_flight", "player": "7aBf9", "location": "Atlanta" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_direct_flight", "player": player1, "location": "Atlanta" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1168,7 +1168,7 @@ describe("Game", function() {
       it('refuses a flight without a ticket', function() {
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_direct_flight", "player": "7aBf9", "location": "Hong Kong" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_direct_flight", "player": player1, "location": "Hong Kong" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1180,9 +1180,9 @@ describe("Game", function() {
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
         var action = { "name": "action_direct_flight", "player": player2, "location": "Toronto" };
-        testActionRequiringApproval(game, "7aBf9", 4, action, "UIyVz");
-        expectActions("7aBf9", 3);
-        expectDiscard("7aBf9", { "type": "location", "location": "Toronto" });
+        testActionRequiringApproval(game, player1, 4, action, player2);
+        expectActions(player1, 3);
+        expectDiscard(player1, { "type": "location", "location": "Toronto" });
         expectMove(player2, "Toronto");
         expectReplayMatch(game);
       });
@@ -1192,9 +1192,9 @@ describe("Game", function() {
         var cards = gameDef.player_cards_draw;
         gameDef.player_cards_draw = cards.splice(3, 1).concat(cards);
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Chicago" })).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_direct_flight", "player": player2, "location": "Atlanta" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_direct_flight", "player": player2, "location": "Atlanta" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1203,7 +1203,7 @@ describe("Game", function() {
         randy.sample = function(arr) { return ["Dispatcher", "Researcher"]; }
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_direct_flight", "player": player2, "location": "Hong Kong" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_direct_flight", "player": player2, "location": "Hong Kong" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1212,31 +1212,31 @@ describe("Game", function() {
     describe('shuttle_flight', function() {
       it('allows a shuttle flight', function() {
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "San Francisco" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Chicago" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "San Francisco" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_build_research_center" })).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "player": "7aBf9", "location": "Atlanta" })).toBeTruthy();
-        expectDrawState("7aBf9", 2);
-        expectMove("7aBf9", "Atlanta");
+        expect(game.act(player1, { "name": "action_shuttle_flight", "player": player1, "location": "Atlanta" })).toBeTruthy();
+        expectDrawState(player1, 2);
+        expectMove(player1, "Atlanta");
         expect(emitter.emit.calls.length).toBe(2);
         expectReplayMatch(game);
       });
 
       it('refuses to move another player', function() {
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "San Francisco" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Chicago" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "San Francisco" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_build_research_center" })).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "player": player2, "location": "San Francisco" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_shuttle_flight", "player": player2, "location": "San Francisco" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
       });
 
       it('refuses a flight to the current location', function() {
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "player": "7aBf9", "location": "Atlanta" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_shuttle_flight", "player": player1, "location": "Atlanta" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1244,16 +1244,16 @@ describe("Game", function() {
       it('refuses a flight without a destination research center', function() {
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "player": "7aBf9", "location": "Hong Kong" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_shuttle_flight", "player": player1, "location": "Hong Kong" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
 
       it('refuses a flight without a source research center', function() {
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Chicago" })).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "player": "7aBf9", "location": "Atlanta" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_shuttle_flight", "player": player1, "location": "Atlanta" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1263,13 +1263,13 @@ describe("Game", function() {
       it('allows a shuttle flight', function() {
         randy.sample = function(arr) { return ["Dispatcher", "Researcher"]; }
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "San Francisco" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "action_build_research_center" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Chicago" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "San Francisco" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_build_research_center" })).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
         var action = { "name": "action_shuttle_flight", "player": player2, "location": "San Francisco" };
-        testActionRequiringApproval(game, "7aBf9", 1, action, "UIyVz");
-        expectDrawState("7aBf9", 2);
+        testActionRequiringApproval(game, player1, 1, action, player2);
+        expectDrawState(player1, 2);
         expectMove(player2, "San Francisco");
         expect(emitter.emit.calls.length).toBe(2);
         expectReplayMatch(game);
@@ -1279,7 +1279,7 @@ describe("Game", function() {
         randy.sample = function(arr) { return ["Dispatcher", "Researcher"]; }
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "player": player2, "location": "Atlanta" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_shuttle_flight", "player": player2, "location": "Atlanta" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1288,7 +1288,7 @@ describe("Game", function() {
         randy.sample = function(arr) { return ["Dispatcher", "Researcher"]; }
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "player": player2, "location": "Hong Kong" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_shuttle_flight", "player": player2, "location": "Hong Kong" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1296,9 +1296,9 @@ describe("Game", function() {
       it('refuses a flight without a source research center', function() {
         randy.sample = function(arr) { return ["Dispatcher", "Researcher"]; }
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": player2, "location": "Chicago" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player2, "location": "Chicago" })).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
-        expect(game.act("7aBf9", { "name": "action_shuttle_flight", "player": player2, "location": "Atlanta" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_shuttle_flight", "player": player2, "location": "Atlanta" })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
         expectReplayMatch(game);
       });
@@ -1310,16 +1310,16 @@ describe("Game", function() {
         randy.sample = function(arr) { return ["Dispatcher", "Researcher"]; }
         gameSetup();
 
-        skipTurnActions("7aBf9");
-        expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
-        skipTurnActions("UIyVz");
-        expect(game.act("UIyVz", { "name": "draw_player_card" })).toBeTruthy();
-        expect(game.act("UIyVz", { "name": "draw_player_card" })).toBeTruthy();
-        expect(game.act("UIyVz", { "name": "draw_infection_card" })).toBeTruthy();
-        expect(game.act("UIyVz", { "name": "draw_infection_card" })).toBeTruthy();
+        skipTurnActions(player1);
+        expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act(player1, { "name": "draw_infection_card" })).toBeTruthy();
+        expect(game.act(player1, { "name": "draw_infection_card" })).toBeTruthy();
+        skipTurnActions(player2);
+        expect(game.act(player2, { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act(player2, { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act(player2, { "name": "draw_infection_card" })).toBeTruthy();
+        expect(game.act(player2, { "name": "draw_infection_card" })).toBeTruthy();
       }
 
       it("allows to discover the cure with 5 cards", function() {
@@ -1333,15 +1333,15 @@ describe("Game", function() {
           { "type": "location", "location": "London" },
           { "type": "location", "location": "Paris" }
         ];
-        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeTruthy();
-        expectActions("7aBf9", 3);
-        _.each(cards, function(card) { expectDiscard("7aBf9", card); });
+        expect(game.act(player1, { "name": "action_discover_cure", cards: cards })).toBeTruthy();
+        expectActions(player1, 3);
+        _.each(cards, function(card) { expectDiscard(player1, card); });
         expect(emitter.emit).toHaveBeenCalledWith({
           "event_type": "discover_cure",
           "disease": "Blue"
         });
-        expect(game.act("7aBf9", { "name": "action_treat_disease", disease: "Blue" })).toBeTruthy();
-        expectActions("7aBf9", 2);
+        expect(game.act(player1, { "name": "action_treat_disease", disease: "Blue" })).toBeTruthy();
+        expectActions(player1, 2);
         expectTreatment("Atlanta", "Blue", 2);
         expectReplayMatch(game);
       });
@@ -1357,15 +1357,15 @@ describe("Game", function() {
           { "type": "location", "location": "New York" },
           { "type": "location", "location": "London" }
         ];
-        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeTruthy();
-        expectActions("7aBf9", 3);
-        _.each(cards, function(card) { expectDiscard("7aBf9", card); });
+        expect(game.act(player1, { "name": "action_discover_cure", cards: cards })).toBeTruthy();
+        expectActions(player1, 3);
+        _.each(cards, function(card) { expectDiscard(player1, card); });
         expect(emitter.emit).toHaveBeenCalledWith({
           "event_type": "discover_cure",
           "disease": "Blue"
         });
-        expect(game.act("7aBf9", { "name": "action_treat_disease", disease: "Blue" })).toBeTruthy();
-        expectActions("7aBf9", 2);
+        expect(game.act(player1, { "name": "action_treat_disease", disease: "Blue" })).toBeTruthy();
+        expectActions(player1, 2);
         expectTreatment("Atlanta", "Blue", 2);
         expectReplayMatch(game);
       });
@@ -1382,33 +1382,33 @@ describe("Game", function() {
           { "type": "location", "location": "New York" },
           { "type": "location", "location": "London" }
         ];
-        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeTruthy();
-        expectActions("7aBf9", 3);
-        _.each(cards, function(card) { expectDiscard("7aBf9", card); });
+        expect(game.act(player1, { "name": "action_discover_cure", cards: cards })).toBeTruthy();
+        expectActions(player1, 3);
+        _.each(cards, function(card) { expectDiscard(player1, card); });
         expect(emitter.emit).toHaveBeenCalledWith({
           "event_type": "discover_cure",
           "disease": "Blue"
         });
         expectTreatment("Atlanta", "Blue", 2);
-        expect(game.act("7aBf9", { "name": "action_treat_disease", disease: "Blue" })).toBeFalsy();
-        expect(game.act("7aBf9", { "name": "action_pass" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "action_pass" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "action_pass" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_treat_disease", disease: "Blue" })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_pass" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_pass" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_pass" })).toBeTruthy();
+        expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act(player1, { "name": "draw_infection_card" })).toBeTruthy();
+        expect(game.act(player1, { "name": "draw_infection_card" })).toBeTruthy();
 
-        expect(game.act("UIyVz", { "name": "action_drive", "player": "UIyVz", "location": "Chicago" })).toBeTruthy();
+        expect(game.act(player2, { "name": "action_drive", "player": player2, "location": "Chicago" })).toBeTruthy();
         expectTreatment("Chicago", "Blue", 3);
-        expect(game.act("UIyVz", { "name": "action_drive", "player": "UIyVz", "location": "Toronto" })).toBeTruthy();
+        expect(game.act(player2, { "name": "action_drive", "player": player2, "location": "Toronto" })).toBeTruthy();
         expectTreatment("Toronto", "Blue", 3);
-        expect(game.act("UIyVz", { "name": "action_drive", "player": "UIyVz", "location": "Washington DC" })).toBeTruthy();
+        expect(game.act(player2, { "name": "action_drive", "player": player2, "location": "Washington DC" })).toBeTruthy();
         expectTreatment("Washington DC", "Blue", 2);
-        expect(game.act("UIyVz", { "name": "action_charter_flight", "player": "UIyVz", "location": "St. Petersburg" })).toBeTruthy();
-        expect(game.act("UIyVz", { "name": "draw_player_card" })).toBeTruthy();
-        expect(game.act("UIyVz", { "name": "draw_player_card" })).toBeTruthy();
-        expect(game.act("UIyVz", { "name": "draw_infection_card" })).toBeTruthy();
+        expect(game.act(player2, { "name": "action_charter_flight", "player": player2, "location": "St. Petersburg" })).toBeTruthy();
+        expect(game.act(player2, { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act(player2, { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act(player2, { "name": "draw_infection_card" })).toBeTruthy();
         expectInfection("St. Petersburg", "Blue", 1);
         expectTreatment("St. Petersburg", "Blue", 1);
 
@@ -1427,7 +1427,7 @@ describe("Game", function() {
           { "type": "location", "location": "Atlanta" }
         ];
 
-        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_discover_cure", cards: cards })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
 
         expectReplayMatch(game);
@@ -1444,13 +1444,13 @@ describe("Game", function() {
           { "type": "location", "location": "London" }
         ];
 
-        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_discover_cure", cards: cards })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
 
         cards.push({ "type": "location", "location": "Essen" });
         cards.push({ "type": "location", "location": "Paris" });
 
-        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_discover_cure", cards: cards })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
 
         expectReplayMatch(game);
@@ -1475,11 +1475,11 @@ describe("Game", function() {
           { "type": "location", "location": "Cairo" }
         ];
 
-        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_discover_cure", cards: cards })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
 
         cards[4] = { "type": "location", "location": "Essen" };
-        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_discover_cure", cards: cards })).toBeTruthy();
       });
 
       it("checks the disease has not yet been cured", function() {
@@ -1495,7 +1495,7 @@ describe("Game", function() {
           { "type": "location", "location": "Paris" }
         ];
 
-        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_discover_cure", cards: cards })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
       });
 
@@ -1512,7 +1512,7 @@ describe("Game", function() {
           { "type": "location", "location": "Paris" }
         ];
 
-        expect(game.act("7aBf9", { "name": "action_discover_cure", cards: cards })).toBeFalsy();
+        expect(game.act(player1, { "name": "action_discover_cure", cards: cards })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
       });
     }); // discover_cure
@@ -1521,35 +1521,35 @@ describe("Game", function() {
       it('allows giving the current location', function() {
         randy.randInt = function(min, max) { return max; }
         gameSetup();
-        skipTurnActions("7aBf9");
-        expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "draw_player_card" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
-        expect(game.act("7aBf9", { "name": "draw_infection_card" })).toBeTruthy();
+        skipTurnActions(player1);
+        expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act(player1, { "name": "draw_infection_card" })).toBeTruthy();
+        expect(game.act(player1, { "name": "draw_infection_card" })).toBeTruthy();
 
         spyOn(emitter, 'emit').andCallThrough();
 
-        expect(game.act("UIyVz",
+        expect(game.act(player2,
             { "name": "action_share_knowledge",
               "location": "Atlanta",
-              "from_player": "UIyVz",
-              "to_player": "7aBf9" })).toBeTruthy();
+              "from_player": player2,
+              "to_player": player1 })).toBeTruthy();
 
         expect(emitter.emit).toHaveBeenCalledWith({
           "event_type": "state_change",
           "state": {
             "name": "approve_action",
-            "player": "UIyVz",
-            "approve_player": "7aBf9",
+            "player": player2,
+            "approve_player": player1,
             "approve_action": {
               "name": "action_share_knowledge",
               "location": "Atlanta",
-              "from_player": "UIyVz",
-              "to_player": "7aBf9"
+              "from_player": player2,
+              "to_player": player1
             },
             "parent": {
               "name": "player_actions",
-              "player": "UIyVz",
+              "player": player2,
               "actions_remaining": 4,
               "terminal": false
             },
@@ -1558,30 +1558,30 @@ describe("Game", function() {
         });
         expect(emitter.emit.calls.length).toBe(1);
 
-        expect(game.act("UIyVz", { "name": "approve_action" })).toBeFalsy();
-        expect(game.act("7aBf9", { "name": "approve_action" })).toBeTruthy();
+        expect(game.act(player2, { "name": "approve_action" })).toBeFalsy();
+        expect(game.act(player1, { "name": "approve_action" })).toBeTruthy();
 
         expect(emitter.emit).toHaveBeenCalledWith({
           "event_type": "transfer_player_card",
-          "from_player": "UIyVz",
-          "to_player": "7aBf9",
+          "from_player": player2,
+          "to_player": player1,
           "card": { "type": "location", "location": "Atlanta" }
         });
-        expectActions("UIyVz", 3);
+        expectActions(player2, 3);
         expect(emitter.emit.calls.length).toBe(3);
 
         // As the card has been transferred, the action is now impossible
-        expect(game.act("UIyVz",
+        expect(game.act(player2,
             { "name": "action_share_knowledge",
               "location": "Atlanta",
-              "from_player": "UIyVz",
-              "to_player": "7aBf9" })).toBeFalsy();
+              "from_player": player2,
+              "to_player": player1 })).toBeFalsy();
         // But we are allowed to reverse it
-        expect(game.act("UIyVz",
+        expect(game.act(player2,
             { "name": "action_share_knowledge",
               "location": "Atlanta",
-              "from_player": "7aBf9",
-              "to_player": "UIyVz" })).toBeTruthy();
+              "from_player": player1,
+              "to_player": player2 })).toBeTruthy();
 
         expectReplayMatch(game);
       });
@@ -1591,27 +1591,27 @@ describe("Game", function() {
 
         spyOn(emitter, 'emit').andCallThrough();
 
-        expect(game.act("7aBf9",
+        expect(game.act(player1,
             { "name": "action_share_knowledge",
               "location": "Atlanta",
-              "from_player": "UIyVz",
-              "to_player": "7aBf9" })).toBeTruthy();
+              "from_player": player2,
+              "to_player": player1 })).toBeTruthy();
 
         expect(emitter.emit).toHaveBeenCalledWith({
           "event_type": "state_change",
           "state": {
             "name": "approve_action",
-            "player": "7aBf9",
-            "approve_player": "UIyVz",
+            "player": player1,
+            "approve_player": player2,
             "approve_action": {
               "name": "action_share_knowledge",
               "location": "Atlanta",
-              "from_player": "UIyVz",
-              "to_player": "7aBf9"
+              "from_player": player2,
+              "to_player": player1
             },
             "parent": {
               "name": "player_actions",
-              "player": "7aBf9",
+              "player": player1,
               "actions_remaining": 4,
               "terminal": false
             },
@@ -1625,40 +1625,40 @@ describe("Game", function() {
       it('allows the other player to refuse the action', function() {
         gameSetup();
 
-        expect(game.act("7aBf9",
+        expect(game.act(player1,
             { "name": "action_share_knowledge",
               "location": "Atlanta",
-              "from_player": "UIyVz",
-              "to_player": "7aBf9" })).toBeTruthy();
+              "from_player": player2,
+              "to_player": player1 })).toBeTruthy();
 
         spyOn(emitter, 'emit').andCallThrough();
 
-        expect(game.act("7aBf9", { "name": "refuse_action" })).toBeFalsy();
-        expect(game.act("UIyVz", { "name": "refuse_action" })).toBeTruthy();
+        expect(game.act(player1, { "name": "refuse_action" })).toBeFalsy();
+        expect(game.act(player2, { "name": "refuse_action" })).toBeTruthy();
 
-        expectActions("7aBf9", 4);
+        expectActions(player1, 4);
 
         expectReplayMatch(game);
       });
 
       it('does not allow giving another location', function() {
         gameSetup();
-        expect(game.act("7aBf9",
+        expect(game.act(player1,
             { "name": "action_share_knowledge",
               "location": "San Francisco",
-              "from_player": "7aBf9",
-              "to_player": "UIyVz" })).toBeFalsy();
+              "from_player": player1,
+              "to_player": player2 })).toBeFalsy();
 
         expectReplayMatch(game);
       });
 
       it('does not allow receiving another location', function() {
         gameSetup();
-        expect(game.act("7aBf9",
+        expect(game.act(player1,
             { "name": "action_share_knowledge",
               "location": "Chicago",
-              "from_player": "UIyVz",
-              "to_player": "7aBf9" })).toBeFalsy();
+              "from_player": player2,
+              "to_player": player1 })).toBeFalsy();
 
         expectReplayMatch(game);
       });
@@ -1666,11 +1666,11 @@ describe("Game", function() {
       it('allows the researcher to give any location', function() {
         randy.sample = function(arr) { return ["Researcher", "Medic"]; };
         gameSetup();
-        expect(game.act("7aBf9",
+        expect(game.act(player1,
             { "name": "action_share_knowledge",
               "location": "San Francisco",
-              "from_player": "7aBf9",
-              "to_player": "UIyVz" })).toBeTruthy();
+              "from_player": player1,
+              "to_player": player2 })).toBeTruthy();
 
         expectReplayMatch(game);
       });
@@ -1678,11 +1678,11 @@ describe("Game", function() {
       it('does not allow the researcher to receive any location', function() {
         randy.sample = function(arr) { return ["Researcher", "Medic"]; };
         gameSetup();
-        expect(game.act("7aBf9",
+        expect(game.act(player1,
             { "name": "action_share_knowledge",
               "location": "Chicago",
-              "from_player": "UIyVz",
-              "to_player": "7aBf9" })).toBeFalsy();
+              "from_player": player2,
+              "to_player": player1 })).toBeFalsy();
 
         expectReplayMatch(game);
       });
@@ -1690,23 +1690,23 @@ describe("Game", function() {
       it('requires both players to be in the same location', function() {
         randy.sample = function(arr) { return ["Researcher", "Medic"]; };
         gameSetup();
-        expect(game.act("7aBf9", { "name": "action_drive", "player": "7aBf9", "location": "Chicago" })).toBeTruthy();
-        expect(game.act("7aBf9",
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Chicago" })).toBeTruthy();
+        expect(game.act(player1,
             { "name": "action_share_knowledge",
               "location": "San Francisco",
-              "from_player": "7aBf9",
-              "to_player": "UIyVz" })).toBeFalsy();
+              "from_player": player1,
+              "to_player": player2 })).toBeFalsy();
 
         expectReplayMatch(game);
       });
       
       it('checks availability of the card', function() {
         gameSetup();
-        expect(game.act("7aBf9",
+        expect(game.act(player1,
             { "name": "action_share_knowledge",
               "location": "Atlanta",
-              "from_player": "7aBf9",
-              "to_player": "UIyVz" })).toBeFalsy();
+              "from_player": player1,
+              "to_player": player2 })).toBeFalsy();
 
         expectReplayMatch(game);
       });
