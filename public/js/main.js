@@ -129,6 +129,9 @@ app.controller('ActionsCtrl', function($scope, GameState) {
   $scope.shuttleFlight = function(player, location) {
     GameState.act({ "name": "action_shuttle_flight", "player": player, "location": location });
   };
+  $scope.converge = function(player, location) {
+    GameState.act({ "name": "action_converge", "player": player, "location": location });
+  };
   $scope.treatDisease = function(disease) {
     GameState.act({ "name": "action_treat_disease", "disease": disease });
   };

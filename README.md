@@ -29,18 +29,19 @@ Make sure you have jasmine-node installed:
 TODO
 ----
 
- - feedback on actions rejected by server
- - share knowledge UI
- - hand limit
- - special events
- - eradicate disease
- - defeat: run out of player cards
- - victory
  - implement dispatcher
     [x] drive
     [x] charter flight
     [x] direct flight
     [x] shuttle flight
-    [ ] converge
+    [x] converge
+ - hand limit
+ - eradicate disease
+ - defeat: run out of player cards
+ - victory
+ - feedback on actions rejected by server
+ - share knowledge UI
+ - special events
  - make ui-sortable work on touch devices; http://touchpunch.furf.com/
  - keep private information private (e.g. hand cards)
+ - more input sanitation (e.g. location / player IDs in action)

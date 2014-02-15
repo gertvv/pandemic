@@ -1304,6 +1304,49 @@ describe("Game", function() {
       });
     });
 
+    describe('converge [dispatcher]', function() {
+      var player3 = "Aws0m";
+      it('allows players to converge', function() {
+        randy.sample = function(arr) { return ["Dispatcher", "Researcher", "Scientist"]; }
+        game.setup(gameDef, [player1, player2, player3], { "number_of_epidemics": 4 });
+        expect(game.act(player1, { "name": "action_drive", "player": player3, "location": "Chicago" })).toBeTruthy();
+        expect(game.act(player3, { "name": "approve_action" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player3, "location": "San Francisco" })).toBeTruthy();
+        expect(game.act(player3, { "name": "approve_action" })).toBeTruthy();
+        spyOn(emitter, "emit").andCallThrough();
+        var action = { "name": "action_converge", "player": player2, "location": "San Francisco" };
+        testActionRequiringApproval(game, player1, 2, action, player2);
+        expectActions(player1, 1);
+        expectMove(player2, "San Francisco");
+        expect(emitter.emit.calls.length).toBe(2);
+        expectReplayMatch(game);
+      });
+
+      it('does not allow move to empty location', function() {
+        randy.sample = function(arr) { return ["Dispatcher", "Researcher", "Scientist"]; }
+        game.setup(gameDef, [player1, player2, player3], { "number_of_epidemics": 4 });
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act(player1, { "name": "action_converge", "player": player3, "location": "San Francisco" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it('allows dispatcher to move himself without approval', function() {
+        randy.sample = function(arr) { return ["Dispatcher", "Researcher", "Scientist"]; }
+        game.setup(gameDef, [player1, player2, player3], { "number_of_epidemics": 4 });
+        expect(game.act(player1, { "name": "action_drive", "player": player3, "location": "Chicago" })).toBeTruthy();
+        expect(game.act(player3, { "name": "approve_action" })).toBeTruthy();
+        expect(game.act(player1, { "name": "action_drive", "player": player3, "location": "San Francisco" })).toBeTruthy();
+        expect(game.act(player3, { "name": "approve_action" })).toBeTruthy();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act(player1, { "name": "action_converge", "player": player1, "location": "San Francisco" })).toBeTruthy();
+        expectActions(player1, 1);
+        expectMove(player1, "San Francisco");
+        expect(emitter.emit.calls.length).toBe(2);
+        expectReplayMatch(game);
+      });
+    });
+
     describe("discover_cure", function() {
       function setupAndSkipTwoTurns() {
         randy.randInt = function(min, max) { return max; }

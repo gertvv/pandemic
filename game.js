@@ -440,6 +440,39 @@ function Game(eventSink, randy) {
             "location": action.location
           });
         }
+      } else if (action.name === "action_converge") {
+        var thePlayer = this.findPlayer(player);
+        if (thePlayer.role !== "Dispatcher") {
+          return false;
+        }
+
+        var other = action.player;
+        var theOther = this.findPlayer(other);
+        if (!theOther) {
+          console.log("Invalid player ", other);
+          return false;
+        }
+        if (theOther.location === action.location) {
+          return false;
+        }
+
+        if (!_.find(this.situation.players, function(player) {
+          return player.location === action.location;
+        })) {
+          return false;
+        }
+
+        if (!approved && other !== player) {
+          this.requestApproval(player, other, action);
+          return true;
+        } else {
+          theOther.location = action.location;
+          eventSink.emit({
+            "event_type": "move_pawn",
+            "player": other,
+            "location": action.location
+          });
+        }
       } else if (action.name === "action_treat_disease") {
         var thePlayer = this.findPlayer(player);
         var location = this.findLocation(thePlayer.location);
