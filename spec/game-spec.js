@@ -1693,6 +1693,36 @@ describe("Game", function() {
         expectInfectionState(player1, 1);
         expect(emitter.emit.callCount).toBe(2); // no infections!
       });
+
+      it("enables victory by eradicating all diseases", function() {
+        for (var i in gameDef.diseases) {
+          var disease = gameDef.diseases[i];
+          disease.status = disease.name === "Blue" ? "cure_discovered" : "eradicated";
+        }
+        gameDef.initial_infections = [ 3 ];
+        randy.randInt = function(min, max) { return max; }
+        gameSetup();
+
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Chicago" })).toBeTruthy();
+        spyOn(emitter, "emit").andCallThrough();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "San Francisco" })).toBeTruthy();
+        expectMove(player1, "San Francisco");
+        expectTreatment("San Francisco", "Blue", 3);
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "eradicate_disease",
+          "disease": "Blue"
+        });
+
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "state_change",
+          "state": {
+            "name": "victory",
+            "terminal": true
+          }
+        });
+
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Chicago" })).toBeFalsy();
+      });
     }); // discover_cure
 
     describe('share_knowledge', function() {

@@ -751,6 +751,14 @@ function Game(eventSink, randy) {
       });
     }
 
+    var active = _.find(this.situation.diseases, function(disease) {
+      return disease.status !== "eradicated";
+    });
+    if (!active) {
+      this.situation.state = { "name": "victory", "terminal": true };
+      this.emitStateChange();
+    }
+
     return true;
   };
 
