@@ -29,7 +29,6 @@ Make sure you have jasmine-node installed:
 TODO
 ----
 
- - defeat: run out of player cards
  - feedback on actions rejected by server
  - share knowledge UI
  - special events

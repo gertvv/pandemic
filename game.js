@@ -36,21 +36,26 @@ function Game(eventSink, randy) {
     };
   }
 
-  function draw_player_cards_state(player) {
-    return {
-      "name": "draw_player_cards",
-      "player": player,
-      "draws_remaining": 2,
-      "terminal": false
-    };
-  }
-
   this.emitStateChange = function() {
     eventSink.emit({
       "event_type": "state_change",
       "state": _.clone(this.situation.state)
     });
   };
+
+  this.enterDrawState = function(player, number) {
+    if (this.situation.player_cards_draw.length === 0) {
+      this.situation.state = { "name": "defeat_out_of_player_cards", "terminal": true };
+    } else {
+      this.situation.state = {
+        "name": "draw_player_cards",
+        "player": player,
+        "draws_remaining": number,
+        "terminal": false
+      };
+    }
+    this.emitStateChange();
+  }
 
   this.drawPlayerCard = function(player) {
     var card = this.situation.player_cards_draw.shift();
@@ -219,32 +224,36 @@ function Game(eventSink, randy) {
     function setupPlayerCards() {
       var cards = randy.shuffle(gameDef.player_cards_draw);
       var nEpidemics = settings.number_of_epidemics;
-      var initialDeal = gameDef.initial_player_cards[players.length];
-      var nReserved = initialDeal * players.length;
-      var nCards = gameDef.player_cards_draw.length;
-      var n = nCards - nReserved;
-      var chunkSize = Math.floor(n / nEpidemics);
-      var larger = n - (nEpidemics * chunkSize);
-      var counts = _.times(nEpidemics,
-          function(index) {
-            return chunkSize + (index < larger ? 1 : 0);
-          });
+      if (nEpidemics > 0) {
+        var initialDeal = gameDef.initial_player_cards[players.length];
+        var nReserved = initialDeal * players.length;
+        var nCards = gameDef.player_cards_draw.length;
+        var n = nCards - nReserved;
+        var chunkSize = Math.floor(n / nEpidemics);
+        var larger = n - (nEpidemics * chunkSize);
+        var counts = _.times(nEpidemics,
+            function(index) {
+              return chunkSize + (index < larger ? 1 : 0);
+            });
 
-      var chunks = _.map(counts,
-          function(count) { 
-            var chunk = [this.index, this.index + count];
-            this.index += count;
-            return chunk;
-          },
-          { "index": nReserved });
+        var chunks = _.map(counts,
+            function(count) { 
+              var chunk = [this.index, this.index + count];
+              this.index += count;
+              return chunk;
+            },
+            { "index": nReserved });
 
-      return _.reduce(chunks, function(memo, chunk, index) {
-          var where = randy.randInt(chunk[0], chunk[1]);
-          return memo
-            .concat(cards.slice(chunk[0], where))
-            .concat([{ "type": "epidemic", "number": index }])
-            .concat(cards.slice(where, chunk[1]));
-        }, cards.slice(0, nReserved));
+        return _.reduce(chunks, function(memo, chunk, index) {
+            var where = randy.randInt(chunk[0], chunk[1]);
+            return memo
+              .concat(cards.slice(chunk[0], where))
+              .concat([{ "type": "epidemic", "number": index }])
+              .concat(cards.slice(where, chunk[1]));
+          }, cards.slice(0, nReserved));
+      } else {
+        return cards;
+      }
     }
     initialState.player_cards_draw = setupPlayerCards();
     initialState.state = { "name": "setup", "terminal": false };
@@ -274,14 +283,14 @@ function Game(eventSink, randy) {
   };
 
   this.resumeDrawPlayerCards = function() {
-    if (this.situation.state.parent.name !== "draw_player_cards") {
+    var parent = this.situation.state.parent;
+    if (parent.name !== "draw_player_cards") {
       throw "invalid state";
     }
-    if (this.situation.state.parent.draws_remaining > 0) {
-      this.situation.state = this.situation.state.parent;
-      this.emitStateChange();
+    if (parent.draws_remaining > 0) {
+      this.enterDrawState(parent.player, parent.draws_remaining);
     } else {
-      this.startInfectionPhase(this.situation.state.parent.player);
+      this.startInfectionPhase(parent.player);
     }
   };
 
@@ -292,9 +301,10 @@ function Game(eventSink, randy) {
     this.situation.state = this.situation.state.parent;
     this.situation.state.actions_remaining--;
     if (this.situation.state.actions_remaining === 0) {
-      this.situation.state = draw_player_cards_state(player);
+      this.enterDrawState(player, 2);
+    } else {
+      this.emitStateChange();
     }
-    this.emitStateChange();
   };
 
   this.discardPlayerCard = function(player, card) {
@@ -642,9 +652,10 @@ function Game(eventSink, randy) {
 
       this.situation.state.actions_remaining--;
       if (this.situation.state.actions_remaining === 0) {
-        this.situation.state = draw_player_cards_state(player);
+        this.enterDrawState(player, 2);
+      } else {
+        this.emitStateChange();
       }
-      this.emitStateChange();
     } else if (action.name === "draw_player_card") {
       if (this.situation.state.name !== "draw_player_cards") {
         return false;
@@ -657,6 +668,10 @@ function Game(eventSink, randy) {
       }
       if (this.situation.state.draws_remaining === 0) {
         this.startInfectionPhase(player);
+      } else if (this.situation.state.name === "draw_player_cards") {
+        this.enterDrawState(player, this.situation.state.draws_remaining);
+      } else {
+        this.emitStateChange();
       }
     } else if (action.name === "discard_player_card") {
       var thePlayer = this.findPlayer(player);
