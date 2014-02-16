@@ -146,6 +146,9 @@ app.controller('ActionsCtrl', function($scope, GameState) {
   $scope.discard = function(card) {
     GameState.act({ "name": "discard_player_card", "card": angular.copy(card) });
   };
+  $scope.play = function(card) {
+    $scope.currentAction = card.special;
+  };
   $scope.shareKnowledgePartner = { "id": null };
   $scope.shareKnowledge = function() {
     var player = $scope.currentPlayer().id;

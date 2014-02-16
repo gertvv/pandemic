@@ -137,11 +137,16 @@
         </div>
       </div>
       <div class="columns large-6">
-        <h5>Your hand</h5>
+        <h5>Your hand (drag to sort)</h5>
         <ul class="no-bullet" ui-sortable ng-model="currentPlayer().hand">
           <li ng-repeat="card in currentPlayer().hand">
             <pandemic-card card="card"></pandemic-card>
-            <i class="fa fa-trash-o" ng-click="discard(card)"></i>
+            <a class="button tiny secondary radius" ng-click="discard(card)">
+              <i class="fa fa-trash-o"></i>
+            </a>
+            <a class="button tiny radius" ng-show="card.type == 'special'" ng-click="play(card)">
+              <i class="fa fa-play"></i>
+            </a>
           </li>
         </ul>
       </div>
@@ -350,6 +355,66 @@
         </form>
       </div>
     </div>
+
+    <div ng-show="currentAction == 'special_resilient_population'">
+      <h5>Resilient population</h5>
+      <p>Take a card from the Infection Discard Pile and remove it from the game.</p>
+      <form>
+        <div ng-repeat="card in game.situation.infection_cards_discard">
+          <input type="radio" ng-model="resilientLocation" ng-attr-value="{{card.location}}">
+          <pandemic-card card="card"></pandemic-card>
+        </div>
+        <button class="button right" ng-click="resilientPopulation(resilientLocation)">Use</button>
+      </form>
+    </div>
+
+    <div ng-show="currentAction == 'special_government_grant'">
+      <h5>Government grant</h5>
+      <p>Add a research station to any city for free.</p>
+      <form>
+        <div class="row">
+          <div class="columns large-8">
+            <input type="text" ng-model="governmentGrantTarget" ui-autocomplete="locationAutocomplete"></input>
+          </div>
+          <div class="columns large-4">
+            <button class="button postfix" ng-click="governmentGrant(governmentGrantTarget)">Use</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div ng-show="currentAction == 'special_one_quiet_night'">
+      <h5>One quiet night</h5>
+      <p>Skip the next infection phase entirely.</p>
+      <button class="button right" ng-click="oneQuietNight()">Use</button>
+    </div>
+
+    <div ng-show="currentAction == 'special_airlift'">
+      <h5>Airlift</h5>
+      <p>Move a player to any city for free.</p>
+      <form>
+        <span>Choose the player to move:</span>
+        <span ng-repeat="player in game.situation.players">
+          <input type="radio" ng-model="playerToMove.id" ng-attr-value="{{player.id}}">
+          <pandemic-role role="{{player.role}}"></pandemic-role>
+        </span>
+        <div class="row">
+          <div class="columns large-8">
+            <input type="text" ng-model="airliftTarget" ui-autocomplete="locationAutocomplete"></input>
+          </div>
+          <div class="columns large-4">
+            <button class="button postfix" ng-click="airlift(playerToMove.id, airliftTarget)">Go</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div ng-show="currentAction == 'special_forecast'">
+      <h5>Forecast</h5>
+      <p>Examine the top 6 cards from the infection draw pile and rearrange them in the order of your choice.</p>
+      <button class="button right" ng-click="forecast()">Use</button>
+    </div>
+
   </div>
 </div>
 <div style="height: 200px;"></div>
