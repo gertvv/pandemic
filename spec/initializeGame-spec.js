@@ -199,5 +199,10 @@ describe("initializeGame", function() {
       }]);
   });
 
+  it("should add cubes_total for each disease", function() {
+    bareInput.diseases = [ { "name": "Blue", "cubes": 8 } ];
+    expect(initializeGame(bareInput).diseases[0].cubes_total).toBe(8);
+  });
+
   // TODO: initializeGame could also sanity-check the input
 });

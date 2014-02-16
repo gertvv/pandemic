@@ -104,6 +104,9 @@ function Game(eventSink, randy) {
     var self = this;
 
     function _infect(locs, dis, out) {
+      var disease = self.findDisease(dis);
+      if (disease.status === "eradicated") return true;
+
       if (_.isEmpty(locs)) return true;
 
       var loc = _.first(locs);
@@ -129,7 +132,6 @@ function Game(eventSink, randy) {
       }
 
       // Out of cubes
-      var disease = self.findDisease(dis);
       if (disease.cubes === 0) {
         self.situation.state = {
           "name": "defeat_too_many_infections",
@@ -734,6 +736,18 @@ function Game(eventSink, randy) {
             "number": number
           });
         }
+      });
+    }
+
+    var eradicated = _.filter(this.situation.diseases, function(disease) {
+      return disease.status === "cure_discovered" && disease.cubes === disease.cubes_total;
+    });
+    for (i in eradicated) {
+      var disease = eradicated[i];
+      disease.status = "eradicated";
+      eventSink.emit({
+        "event_type": "eradicate_disease",
+        "disease": disease.name
       });
     }
 

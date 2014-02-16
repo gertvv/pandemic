@@ -29,7 +29,6 @@ Make sure you have jasmine-node installed:
 TODO
 ----
 
- - eradicate disease
  - defeat: run out of player cards
  - victory
  - feedback on actions rejected by server

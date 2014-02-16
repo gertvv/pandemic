@@ -66,6 +66,11 @@ function initializeGame(input) {
     }
   });
 
+  // add cubes_total to diseases
+  for (i in output.diseases) {
+    output.diseases[i].cubes_total = output.diseases[i].cubes;
+  }
+
   return output;
 }
 

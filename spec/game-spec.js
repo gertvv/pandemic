@@ -1645,6 +1645,54 @@ describe("Game", function() {
         expect(game.act(player1, { "name": "action_discover_cure", cards: cards })).toBeFalsy();
         expect(emitter.emit).not.toHaveBeenCalled();
       });
+
+      it("allows the disease to be eradicated", function() {
+        gameDef.initial_infections = [ 3 ];
+        randy.randInt = function(min, max) { return max; }
+        randy.sample = function(arr) { return [ "Scientist", "Medic" ]; };
+        gameSetup();
+
+        spyOn(emitter, "emit").andCallThrough();
+        var cards = [
+          { "type": "location", "location": "San Francisco" },
+          { "type": "location", "location": "Toronto" },
+          { "type": "location", "location": "New York" },
+          { "type": "location", "location": "London" }
+        ];
+        expect(game.act(player1, { "name": "action_discover_cure", cards: cards })).toBeTruthy();
+        expectActions(player1, 3);
+        _.each(cards, function(card) { expectDiscard(player1, card); });
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "discover_cure",
+          "disease": "Blue"
+        });
+        emitter.emit.reset();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Chicago" })).toBeTruthy();
+        expectActions(player1, 2);
+        expectMove(player1, "Chicago");
+        emitter.emit.reset();
+        expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "San Francisco" })).toBeTruthy();
+        expectActions(player1, 1);
+        expectMove(player1, "San Francisco");
+        emitter.emit.reset();
+        expect(game.act(player1, { "name": "action_treat_disease", "disease": "Blue" })).toBeTruthy();
+        expectTreatment("San Francisco", "Blue", 3);
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "eradicate_disease",
+          "disease": "Blue"
+        });
+        expectDrawState(player1, 2);
+        expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+        expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+        emitter.emit.reset();
+        expect(game.act(player1, { "name": "draw_infection_card" })).toBeTruthy();
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "draw_and_discard_infection_card",
+          "card": { "type": "location", "location": "Chicago" }
+        });
+        expectInfectionState(player1, 1);
+        expect(emitter.emit.callCount).toBe(2); // no infections!
+      });
     }); // discover_cure
 
     describe('share_knowledge', function() {
