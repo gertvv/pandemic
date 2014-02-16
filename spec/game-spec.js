@@ -2099,5 +2099,71 @@ describe("Game", function() {
         expectReplayMatch(game);
       });
     }); // special_airlift
+
+    describe("special_government_grant", function() {
+      it("allows to build a research station", function() {
+        randy.shuffle = shuffleSpecial("special_government_grant", 0);
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act(player1, { "name": "special_government_grant", "location": "Hong Kong" })).toBeTruthy();
+        expectDiscard(player1, { "type": "special", "special": "special_government_grant" });
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "build_research_center",
+          "location": "Hong Kong"
+        });
+        expect(emitter.emit.callCount).toBe(2);
+        expectReplayMatch(game);
+      });
+
+      it("can be used outside of own turn", function() {
+        randy.shuffle = shuffleSpecial("special_government_grant", 1);
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act(player2, { "name": "special_government_grant", "location": "Hong Kong" })).toBeTruthy();
+        expectDiscard(player2, { "type": "special", "special": "special_government_grant" });
+        expect(emitter.emit).toHaveBeenCalledWith({
+          "event_type": "build_research_center",
+          "location": "Hong Kong"
+        });
+        expect(emitter.emit.callCount).toBe(2);
+        expectReplayMatch(game);
+      });
+
+      it("refuses to build without the card", function() {
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act(player1, { "name": "special_government_grant", "location": "Hong Kong" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it("refuses to build where a research center already exists", function() {
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act(player1, { "name": "special_government_grant", "location": "Atlanta" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it("refuses to build when research centers have run out", function() {
+        gameDef.research_centers_available = 1;
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act(player1, { "name": "special_government_grant", "location": "Paris" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it("can not be played during an epidemic", function() {
+        randy.shuffle = shuffleSpecial("special_government_grant", 1);
+        gameSetup();
+        skipTurnActions(player1);
+        expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act(player2, { "name": "special_government_grant", "location": "Baghdad" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+    }); // special_airlift
   }); // .act()
 }); // Game

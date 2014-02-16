@@ -690,6 +690,34 @@ function Game(eventSink, randy) {
           "location": action.location
         });
       }
+    } else if (action.name === "special_government_grant") {
+      if (this.situation.state.name === "epidemic") {
+        return false;
+      }
+      var thePlayer = this.findPlayer(player);
+
+      var card = _.find(thePlayer.hand, function(card) {
+        return card.special === action.name;
+      });
+      if (!card) {
+        return false;
+      }
+
+      if (this.situation.research_centers_available === 0) {
+        return false;
+      }
+      if (_.find(this.situation.research_centers, function(center) {
+        return center.location === action.location; })) {
+        return false;
+      };
+
+      this.discardPlayerCard(player, card);
+      eventSink.emit({
+        "event_type": "build_research_center",
+        "location": action.location
+      });
+      this.situation.research_centers.push({ "location": thePlayer.location });
+      this.situation.research_centers_available--;
     } else if (action.name === "draw_player_card") {
       if (this.situation.state.name !== "draw_player_cards") {
         return false;

@@ -31,7 +31,7 @@ TODO
 
  - special events
    [ ] resilient population
-   [ ] government grant
+   [x] government grant
    [ ] one quiet night
    [x] airlift
    [ ] forecast
@@ -40,3 +40,4 @@ TODO
  - make ui-sortable work on touch devices; http://touchpunch.furf.com/
  - keep private information private (e.g. hand cards)
  - more input sanitation (e.g. location / player IDs in action)
+ - move research centers when they run out
