@@ -30,7 +30,6 @@ TODO
 ----
 
  - defeat: run out of player cards
- - victory
  - feedback on actions rejected by server
  - share knowledge UI
  - special events

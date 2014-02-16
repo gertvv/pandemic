@@ -1692,6 +1692,8 @@ describe("Game", function() {
         });
         expectInfectionState(player1, 1);
         expect(emitter.emit.callCount).toBe(2); // no infections!
+
+        expectReplayMatch(game);
       });
 
       it("enables victory by eradicating all diseases", function() {
@@ -1722,6 +1724,8 @@ describe("Game", function() {
         });
 
         expect(game.act(player1, { "name": "action_drive", "player": player1, "location": "Chicago" })).toBeFalsy();
+
+        expectReplayMatch(game);
       });
     }); // discover_cure
 

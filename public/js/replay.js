@@ -110,6 +110,14 @@ var Replay = function() {
     }
   ];
 
+  this.eradicate_disease = [
+    function(e) {
+      var disease = _.find(situation.diseases,
+          function(disease) { return disease.name === e.disease; });
+      disease.status = "eradicated";
+    }
+  ];
+
   this.transfer_player_card = [
     function(e) {
       var from = findPlayer(e.from_player);
