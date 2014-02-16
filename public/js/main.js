@@ -8,7 +8,6 @@ app.factory('GameState', function() {
 
   function attachEventListeners() {
     replay.initial_situation.push(function(e) {
-      console.log(e);
       service.game.state = "in progress";
     });
     replay.infect.push(function(e) {
@@ -57,6 +56,14 @@ app.factory('GameState', function() {
           service.users.push.apply(service.users, data);
         });
       });
+
+      socket.on('return', function(data) {
+        console.log(data);
+        $scope.$apply(function() {
+          service.action_return.push(data);
+          console.log(service.action_return);
+        });
+      });
     }
   };
 
@@ -79,6 +86,7 @@ app.factory('GameState', function() {
     game: {},
     log: [],
     users: [],
+    action_return: [],
     post: post,
     start: start,
     act: act
@@ -89,6 +97,7 @@ app.factory('GameState', function() {
       service.game = {};
       service.log = [];
       service.users = [];
+      service.action_return = [];
       socket = null;
   }
   init();
@@ -201,6 +210,7 @@ app.controller('ActionsCtrl', function($scope, GameState) {
   $scope.otherPlayer = function(player) {
     return player.id !== $scope.currentPlayer().id;
   };
+  $scope.action_return = GameState.action_return;
 });
 
 app.filter('reverse', function() {

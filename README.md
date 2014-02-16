@@ -35,9 +35,10 @@ TODO
    [ ] one quiet night
    [x] airlift
    [ ] forecast
- - feedback on actions rejected by server
  - share knowledge UI
  - make ui-sortable work on touch devices; http://touchpunch.furf.com/
  - keep private information private (e.g. hand cards)
  - more input sanitation (e.g. location / player IDs in action)
  - move research centers when they run out
+ - ensure *nothing* else can happen during approval phase
+ - give reasons for action rejection

@@ -158,7 +158,8 @@ function createWS(gameId, situation) {
       });
       socket.on('act', function(action) {
         if (!_.isNull(engine)) {
-          engine.act(userId, action);
+          var result = engine.act(userId, action);
+          socket.emit('return', { 'action': action, 'status': result });
         }
       });
       socket.on('disconnect', function() {
