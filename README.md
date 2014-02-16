@@ -29,9 +29,14 @@ Make sure you have jasmine-node installed:
 TODO
 ----
 
+ - special events
+   [ ] resilient population
+   [ ] government grant
+   [ ] one quiet night
+   [x] airlift
+   [ ] forecast
  - feedback on actions rejected by server
  - share knowledge UI
- - special events
  - make ui-sortable work on touch devices; http://touchpunch.furf.com/
  - keep private information private (e.g. hand cards)
  - more input sanitation (e.g. location / player IDs in action)

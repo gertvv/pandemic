@@ -656,6 +656,40 @@ function Game(eventSink, randy) {
       } else {
         this.emitStateChange();
       }
+    } else if (action.name === "special_airlift") {
+      if (this.situation.state.name === "epidemic") {
+        return false;
+      }
+      var thePlayer = this.findPlayer(player);
+      var other = action.player;
+      var theOther = this.findPlayer(other);
+      if (!theOther) { 
+        return false;
+      }
+
+      if (theOther.location === action.location) {
+        return false;
+      }
+
+      var card = _.find(thePlayer.hand, function(card) {
+        return card.special === "special_airlift";
+      });
+      if (!card) {
+        return false;
+      }
+
+      if (!approved && other !== player) {
+        this.requestApproval(player, other, action);
+        return true;
+      } else {
+        this.discardPlayerCard(player, card);
+        theOther.location = action.location;
+        eventSink.emit({
+          "event_type": "move_pawn",
+          "player": other,
+          "location": action.location
+        });
+      }
     } else if (action.name === "draw_player_card") {
       if (this.situation.state.name !== "draw_player_cards") {
         return false;

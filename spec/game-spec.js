@@ -83,13 +83,8 @@ describe("Game", function() {
   }
 
   // we expect the emitter to be spied on
-  function testActionRequiringApproval(game, player, remaining, action, other) {
-    var state = {
-      "name": "player_actions",
-      "player": player,
-      "actions_remaining": remaining,
-      "terminal": false
-    };
+  function testActionRequiringApproval(game, player, action, other) {
+    var state = game.situation.state;
     var request = {
       "event_type": "state_change",
       "state": {
@@ -1053,7 +1048,7 @@ describe("Game", function() {
           "player": player2,
           "location": "Washington DC"
         };
-        testActionRequiringApproval(game, player1, 4, action, player2);
+        testActionRequiringApproval(game, player1, action, player2);
 
         expectActions(player1, 3);
         expectMove(player2, "Washington DC");
@@ -1234,7 +1229,7 @@ describe("Game", function() {
           "player": player2,
           "location": "Hong Kong"
         };
-        testActionRequiringApproval(game, player1, 4, action, player2);
+        testActionRequiringApproval(game, player1, action, player2);
         expectActions(player1, 3);
         expectDiscard(player1, { "type": "location", "location": "Atlanta" });
         expectMove(player2, "Hong Kong");
@@ -1305,7 +1300,7 @@ describe("Game", function() {
         gameSetup();
         spyOn(emitter, "emit").andCallThrough();
         var action = { "name": "action_direct_flight", "player": player2, "location": "Toronto" };
-        testActionRequiringApproval(game, player1, 4, action, player2);
+        testActionRequiringApproval(game, player1, action, player2);
         expectActions(player1, 3);
         expectDiscard(player1, { "type": "location", "location": "Toronto" });
         expectMove(player2, "Toronto");
@@ -1393,7 +1388,7 @@ describe("Game", function() {
         expect(game.act(player1, { "name": "action_build_research_center" })).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
         var action = { "name": "action_shuttle_flight", "player": player2, "location": "San Francisco" };
-        testActionRequiringApproval(game, player1, 1, action, player2);
+        testActionRequiringApproval(game, player1, action, player2);
         expectDrawState(player1, 2);
         expectMove(player2, "San Francisco");
         expect(emitter.emit.calls.length).toBe(2);
@@ -1440,7 +1435,7 @@ describe("Game", function() {
         expect(game.act(player3, { "name": "approve_action" })).toBeTruthy();
         spyOn(emitter, "emit").andCallThrough();
         var action = { "name": "action_converge", "player": player2, "location": "San Francisco" };
-        testActionRequiringApproval(game, player1, 2, action, player2);
+        testActionRequiringApproval(game, player1, action, player2);
         expectActions(player1, 1);
         expectMove(player2, "San Francisco");
         expect(emitter.emit.calls.length).toBe(2);
@@ -2024,6 +2019,85 @@ describe("Game", function() {
 
         expectReplayMatch(game);
       });
-    });
+    }); // action_share_knowledge
+
+    function shuffleSpecial(specialName, toIndex) {
+      return function(arr) {
+        arr = _.clone(arr);
+        var special = _.find(arr, function(card) {
+          return card.type === "special" && card.special === specialName;
+        });
+        if (special) {
+          var index = _.indexOf(arr, special);
+          arr.splice(index, 1);
+          arr.splice(toIndex, 0, special);
+        }
+        return arr;
+      };
+    }
+
+    describe("special_airlift", function() {
+      it("allows a player to move himself", function() {
+        randy.shuffle = shuffleSpecial("special_airlift", 0);
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act(player1, { "name": "special_airlift", "player": player1, "location": "Hong Kong" })).toBeTruthy();
+        expectDiscard(player1, { "type": "special", "special": "special_airlift" });
+        expectMove(player1, "Hong Kong");
+        expect(emitter.emit.callCount).toBe(2);
+        expectReplayMatch(game);
+      });
+
+      it("can be used outside of own turn", function() {
+        randy.shuffle = shuffleSpecial("special_airlift", 1);
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act(player2, { "name": "special_airlift", "player": player2, "location": "Hong Kong" })).toBeTruthy();
+        expectDiscard(player2, { "type": "special", "special": "special_airlift" });
+        expectMove(player2, "Hong Kong");
+        expect(emitter.emit.callCount).toBe(2);
+        expectReplayMatch(game);
+      });
+
+      it("refuses to move to the current location", function() {
+        randy.shuffle = shuffleSpecial("special_airlift", 0);
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act(player1, { "name": "special_airlift", "player": player1, "location": "Atlanta" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it("refuses to move without the card", function() {
+        randy.shuffle = shuffleSpecial("special_airlift", 0);
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act(player2, { "name": "special_airlift", "player": player2, "location": "Hong Kong" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+
+      it("requires approval when moving other players", function() {
+        randy.shuffle = shuffleSpecial("special_airlift", 1);
+        gameSetup();
+        spyOn(emitter, 'emit').andCallThrough();
+        testActionRequiringApproval(game, player2, { "name": "special_airlift", "player": player1, "location": "Hong Kong" }, player1);
+        expectDiscard(player2, { "type": "special", "special": "special_airlift" });
+        expectMove(player1, "Hong Kong");
+        expect(emitter.emit.callCount).toBe(2);
+        expectReplayMatch(game);
+      });
+
+      it("can not be played during an epidemic", function() {
+        randy.shuffle = shuffleSpecial("special_airlift", 1);
+        gameSetup();
+        skipTurnActions(player1);
+        expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+        spyOn(emitter, 'emit').andCallThrough();
+        expect(game.act(player2, { "name": "special_airlift", "player": player2, "location": "Baghdad" })).toBeFalsy();
+        expect(emitter.emit).not.toHaveBeenCalled();
+        expectReplayMatch(game);
+      });
+    }); // special_airlift
   }); // .act()
 }); // Game
