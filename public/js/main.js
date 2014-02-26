@@ -118,6 +118,9 @@ app.controller('MapCtrl', function($scope) {
       return location.name === name;
     });
   }
+  $scope.greaterThan = function(expected, actual) {
+    return actual >= expected;
+  }
 });
 
 app.controller('LobbyCtrl', function($scope, GameState) {
