@@ -113,6 +113,11 @@ app.controller('ChatCtrl', function($scope, GameState) {
 });
 
 app.controller('MapCtrl', function($scope) {
+  $scope.location = function(name) {
+    return _.find($scope.game.situation.locations, function(location) {
+      return location.name === name;
+    });
+  }
 });
 
 app.controller('LobbyCtrl', function($scope, GameState) {

@@ -3,6 +3,17 @@
     <svg ng-attr-width="{{game.situation.map.width}}" ng-attr-height="{{game.situation.map.height}}" ng-if="game.situation" ng-controller="MapCtrl">
       <image x="0" y="0" ng-attr-width="{{game.situation.map.width}}" ng-attr-height="{{game.situation.map.height}}" xlink:href="{{game.situation.map.url}}" />
       <g ng-attr-transform="translate({{game.situation.map.offset_x}},{{game.situation.map.offset_y}})">
+
+      <!-- replicate the map -->
+        <g ng-repeat="city in game.situation.locations">
+          <g ng-repeat="tgt in city.adjacent">
+            <line ng-attr-x1="{{city.x + 14}}" ng-attr-y1="{{city.y + 14}}" ng-attr-x2="{{location(tgt).x + 14}}" ng-attr-y2="{{location(tgt).y + 14}}" style="stroke: green"></line>
+          </g>
+        </g>
+        <g ng-repeat="city in game.situation.locations">
+          <circle ng-attr-cx="{{city.x + 14}}" ng-attr-cy="{{city.y + 14}}" r="14" ng-attr-fill="{{city.disease}}"></circle>
+        </g>
+
         <circle
           ng-attr-cx="{{game.situation.outbreak_markers[game.situation.outbreak_count].x + game.situation.outbreak_marker_size.width / 2}}"
           ng-attr-cy="{{game.situation.outbreak_markers[game.situation.outbreak_count].y + game.situation.outbreak_marker_size.width / 2}}"
@@ -422,4 +433,7 @@
     </div>
   </div>
 </div>
+<pre>
+{{game.situation | json}}
+</pre>
 <div style="height: 200px;"></div>
