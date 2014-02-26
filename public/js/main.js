@@ -216,7 +216,7 @@ app.controller('ActionsCtrl', function($scope, GameState) {
   };
   $scope.playerToMove = { "id": $scope.user.id };
   $scope.otherPlayer = function(player) {
-    return player.id !== $scope.currentPlayer().id;
+    return $scope.currentPlayer() ? (player.id !== $scope.currentPlayer().id) : null;
   };
   $scope.action_return = GameState.action_return;
 });
@@ -300,6 +300,42 @@ app.directive('pandemicCard', function(GameState) {
       }
     },
     template: '<span ng-if="card.type == \'location\'"><span style="background-color:{{disease.color}}; width: 15px; height: 15px; display:inline-block; margin-right: 4px;"></span>{{card.location}}</span><span ng-if="card.type == \'special\'"><span style="width: 15px; height: 15px; display:inline-block; margin-right: 4px; font-weight: bold; text-align: center; background-color: #b3dbea; font-size: 60%">?</span>{{special.title}}</span>'
+  };
+});
+
+app.directive('route', function(GameState) {
+  return {
+    restrict: 'E',
+    replace: true,
+    scope: {
+      from: '=',
+      to: '='
+    },
+    link: function(scope, element, attrs) {
+      var mapWidth = GameState.game.situation.map.width;
+      var src = { "x": scope.from.x + 14, "y": scope.from.y + 14 };
+      var dst = { "x": scope.to.x + 14, "y": scope.to.y + 14 };
+
+      if (src.x > dst.x) {
+        var swp = src;
+        src = dst;
+        dst = swp;
+      }
+
+      scope.lines = [];
+      if (dst.x - src.x > mapWidth / 2) {
+        var dx = src.x + mapWidth - 1 - dst.x;
+        var dy = dst.y - src.y;
+        var f = src.x/dx;
+        scope.lines.push({"x1": 0, "y1": src.y + dy * f, "x2": src.x, "y2": src.y});
+        scope.lines.push({"x1": dst.x, "y1": dst.y, "x2": mapWidth - 1, "y2": dst.y - dy * (1 - f)});
+      } else {
+        scope.lines.push({"x1": src.x, "y1": src.y, "x2": dst.x, "y2": dst.y});
+      }
+    },
+    template: '<svg>' +
+      '<line ng-repeat="line in lines" ng-attr-x1="{{line.x1}}" ng-attr-y1="{{line.y1}}" ng-attr-x2="{{line.x2}}" ng-attr-y2="{{line.y2}}" style="stroke: green"></line>' +
+    '</svg>'
   };
 });
 

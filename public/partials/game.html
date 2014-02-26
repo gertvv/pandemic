@@ -7,7 +7,7 @@
       <!-- replicate the map -->
         <g ng-repeat="city in game.situation.locations">
           <g ng-repeat="tgt in city.adjacent | filter:city.name:greaterThan">
-            <line ng-attr-x1="{{city.x + 14}}" ng-attr-y1="{{city.y + 14}}" ng-attr-x2="{{location(tgt).x + 14}}" ng-attr-y2="{{location(tgt).y + 14}}" style="stroke: green"></line>
+            <route from="city" to="location(tgt)"></route>
           </g>
         </g>
         <g ng-repeat="city in game.situation.locations">
