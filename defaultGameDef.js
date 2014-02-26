@@ -1,6 +1,5 @@
 module.exports = {
   "map": {
-    "url": "img/map.jpg",
     "width": 1024,
     "height": 545,
     "offset_y": -50,

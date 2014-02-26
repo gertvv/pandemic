@@ -1,30 +1,47 @@
 <div class="row">
   <div class="columns large-12">
     <svg ng-attr-width="{{game.situation.map.width}}" ng-attr-height="{{game.situation.map.height}}" ng-if="game.situation" ng-controller="MapCtrl">
-      <image x="0" y="0" ng-attr-width="{{game.situation.map.width}}" ng-attr-height="{{game.situation.map.height}}" xlink:href="{{game.situation.map.url}}" />
-      <g ng-attr-transform="translate({{game.situation.map.offset_x}},{{game.situation.map.offset_y}})">
 
-      <!-- replicate the map -->
-        <g ng-repeat="city in game.situation.locations">
-          <g ng-repeat="tgt in city.adjacent | filter:city.name:greaterThan">
-            <route from="city" to="location(tgt)"></route>
+      <!-- use a map image if available -->
+      <g ng-if="game.situation.map.url">
+        <image x="0" y="0" ng-attr-width="{{game.situation.map.width}}" ng-attr-height="{{game.situation.map.height}}" xlink:href="{{game.situation.map.url}}" />
+      </g>
+
+      <!-- otherwise draw the map -->
+      <g ng-if="!game.situation.map.url">
+        <rect x="0" y="0" ng-attr-width="{{game.situation.map.width}}" ng-attr-height="{{game.situation.map.height}}" fill="gray" />
+        <g ng-attr-transform="translate({{game.situation.map.offset_x}},{{game.situation.map.offset_y}})">
+          <g ng-repeat="city in game.situation.locations">
+            <g ng-repeat="tgt in city.adjacent | filter:city.name:greaterThan">
+              <route from="city" to="location(tgt)"></route>
+            </g>
+          </g>
+          <g ng-repeat="city in game.situation.locations">
+            <circle ng-attr-cx="{{city.x + 14}}" ng-attr-cy="{{city.y + 14}}" r="14" ng-attr-fill="{{city.disease}}"></circle>
+            <text text-anchor="middle" ng-attr-x="{{city.x + 14}}" ng-attr-y="{{city.y + 40}}" style="font-size: 10px; fill: white">{{city.name}}</text>
           </g>
         </g>
-        <g ng-repeat="city in game.situation.locations">
-          <circle ng-attr-cx="{{city.x + 14}}" ng-attr-cy="{{city.y + 14}}" r="14" ng-attr-fill="{{city.disease}}"></circle>
+      </g>
+
+      <!-- dynamic elements -->
+      <g ng-attr-transform="translate({{game.situation.map.offset_x}},{{game.situation.map.offset_y}})">
+        <!-- outbreaks marker -->
+        <g ng-attr-transform="translate({{game.situation.outbreak_markers[game.situation.outbreak_count].x + game.situation.outbreak_marker_size.width / 2}},{{game.situation.outbreak_markers[game.situation.outbreak_count].y + game.situation.outbreak_marker_size.width / 2}})">
+          <circle ng-attr-r="{{game.situation.outbreak_marker_size.width / 2}}" fill="red" />
+          <text text-anchor="middle" dy=".3em" style="fill: white">{{game.situation.outbreak_count}}</text>
         </g>
 
-        <circle
-          ng-attr-cx="{{game.situation.outbreak_markers[game.situation.outbreak_count].x + game.situation.outbreak_marker_size.width / 2}}"
-          ng-attr-cy="{{game.situation.outbreak_markers[game.situation.outbreak_count].y + game.situation.outbreak_marker_size.width / 2}}"
-          ng-attr-r="{{game.situation.outbreak_marker_size.width / 2}}"
-          fill="red"></circle>
-        <circle
-          ng-attr-cx="{{game.situation.infection_rate_levels[game.situation.infection_rate_index].x + game.situation.infection_rate_marker_size.width / 2}}"
-          ng-attr-cy="{{game.situation.infection_rate_levels[game.situation.infection_rate_index].y + game.situation.infection_rate_marker_size.width / 2}}"
-          ng-attr-r="{{game.situation.infection_rate_marker_size.width / 2}}"
-          fill="red"></circle>
-        <location-marker ng-repeat="city in game.situation.locations" location-name="{{city.name}}" location="city" />
+        <!-- infection rate marker -->
+        <g ng-attr-transform="translate({{game.situation.infection_rate_levels[game.situation.infection_rate_index].x + game.situation.infection_rate_marker_size.width / 2}},{{game.situation.infection_rate_levels[game.situation.infection_rate_index].y + game.situation.infection_rate_marker_size.width / 2}})">
+          <circle ng-attr-r="{{game.situation.infection_rate_marker_size.width / 2}}" fill="red" />
+          <text text-anchor="middle", dy=".3em", style="fill: white">{{game.situation.infection_rate_levels[game.situation.infection_rate_index].rate}}</text>
+        </g>
+
+
+        <!-- location markers -->
+        <location-marker ng-repeat="city in game.situation.locations" location-name="{{city.name}}" location="city"></location-marker>
+
+        <!-- disease markers -->
         <g ng-repeat="disease in game.situation.diseases" ng-attr-transform="translate({{disease.x + 4}}, {{disease.y - 16}})">
           <rect width="40" height="20" x="-5" y="-5" fill="white" />
           <rect width="8" height="8" ng-attr-style="fill:{{disease.color}}" />
