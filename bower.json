@@ -21,7 +21,7 @@
     "angular": "1.2.6",
     "angular-ui-router": "0.2.7",
     "foundation": "~5.0.2",
-    "angular-ui-sortable": "~0.10.0",
+    "angular-ui-sortable": "0.10.1",
     "angular-cookies": "~1.2.6",
     "underscore": "~1.5.2",
     "angular-ui-autocomplete": "~0.5.4",
