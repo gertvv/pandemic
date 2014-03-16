@@ -214,6 +214,11 @@ app.controller('ActionsCtrl', function($scope, GameState) {
       source: _.map(GameState.game.situation.locations, function(location) { return location.name; })
     }
   };
+  $scope.diseaseAutocomplete = {
+    options: {
+      source: ['Black', 'Blue', 'Red', 'Yellow']
+    }
+  }
   $scope.playerToMove = { "id": $scope.user.id };
   $scope.otherPlayer = function(player) {
     return $scope.currentPlayer() ? (player.id !== $scope.currentPlayer().id) : null;
