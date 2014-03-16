@@ -329,6 +329,24 @@ function Game(eventSink, randy) {
     };
     this.emitStateChange();
   };
+
+  this.is_not_dispatcher_and_other_player_selected = function(player, action)  {
+    var thePlayer = this.findPlayer(player);
+    if (player !== action.player && thePlayer.role !== "Dispatcher") {
+      return true;
+    }
+    return false;
+  }
+
+  this.is_valid_player = function(player)  {
+      var playerObject = this.findPlayer(player);
+      if (!playerObject) {
+        console.log("Invalid player ", player);
+        return false;
+      }
+      return true;
+  }
+
   this.check_action_prerequisites = function(player, action) {
     if (action.name.match(/^action_/)) {
       if (this.situation.state.name !== "player_actions") {
@@ -341,89 +359,67 @@ function Game(eventSink, randy) {
     switch (action.name) {
       case "refuse_action":
       case "approve_action":
-        if (this.situation.state.name !== "approve_action") {
-          return false;
-        }
-        if (this.situation.state.approve_player !== player) {
+        if ((this.situation.state.name !== "approve_action") || (this.situation.state.approve_player !== player)) {
           return false;
         }
         break;
       case "action_drive":
-        var thePlayer = this.findPlayer(player);
-        if (player !== action.player && thePlayer.role !== "Dispatcher") {
+        if (this.is_not_dispatcher_and_other_player_selected(player, action) || !this.is_valid_player(action.player)) {
           return false;
         }
-        var other = action.player;
-        var theOther = this.findPlayer(other);
-        if (!theOther) {
-          console.log("Invalid player ", other);
-          return false;
-        }
-        var source = this.findLocation(theOther.location);
+        var movedPlayerObject = this.findPlayer(action.player);
+        var source = this.findLocation(movedPlayerObject.location);
         if (!_.contains(source.adjacent, action.location)) {
           return false;
         }
         break;
       case "action_charter_flight":
         var thePlayer = this.findPlayer(player);
-        if (player !== action.player && thePlayer.role !== "Dispatcher") {
+        if this.is_not_dispatcher_and_other_player_selected(player, action) {
           return false;
         }
 
-        var other = action.player;
-        var theOther = this.findPlayer(other);
-        if (theOther.location === action.location) {
+        var movedPlayerObject = this.findPlayer(action.player);
+        if (movedPlayerObject.location === action.location) {
           return false;
         }
 
-        var card = _.find(thePlayer.hand, function(card) {
-          return card.location === thePlayer.location;
-        })
-        if (!card) {
+        if (!_.find(thePlayer.hand, function(card) { return card.location === thePlayer.location; })) {
           return false;
         }
         break;
       case "action_direct_flight":
         var thePlayer = this.findPlayer(player);
-        if (player !== action.player && thePlayer.role !== "Dispatcher") {
+        if this.is_not_dispatcher_and_other_player_selected(player, action) {
           return false;
         }
 
-        var other = action.player;
-        var theOther = this.findPlayer(other);
-        if (theOther.location === action.location) {
+        var movedPlayerObject = this.findPlayer(action.player);
+        if (movedPlayerObject.location === action.location) {
           return false;
         }
 
-        var card = _.find(thePlayer.hand, function(card) {
-          return card.location === action.location;
-        })
-        if (!card) {
+        if (!_.find(thePlayer.hand, function(card) { return card.location === action.location; })) {
           return false;
         }
+
         break;
       case "action_shuttle_flight":
-        var thePlayer = this.findPlayer(player);
-        if (player !== action.player && thePlayer.role !== "Dispatcher") {
+        if this.is_not_dispatcher_and_other_player_selected(player, action) {
           return false;
         }
 
-        var other = action.player;
-        var theOther = this.findPlayer(other);
-        var origin = theOther.location;
+        var movedPlayerObject = this.findPlayer(action.player);
+        var origin = movedPlayerObject.location;
         var destination = action.location;
         if (origin === destination) {
           return false;
         }
 
-        if (!_.find(this.situation.research_centers, function(center) {
-          return center.location === origin;
-        })) {
+        if (!_.find(this.situation.research_centers, function(center) { return center.location === origin; })) {
           return false;
         }
-        if (!_.find(this.situation.research_centers, function(center) {
-          return center.location === destination;
-        })) {
+        if (!_.find(this.situation.research_centers, function(center) { return center.location === destination; })) {
           return false;
         }
         break;
@@ -433,19 +429,16 @@ function Game(eventSink, randy) {
           return false;
         }
 
-        var other = action.player;
-        var theOther = this.findPlayer(other);
-        if (!theOther) {
-          console.log("Invalid player ", other);
-          return false;
-        }
-        if (theOther.location === action.location) {
+        var movedPlayerObject = this.findPlayer(action.player);
+        if (!this.is_valid_player(action.player)) {
           return false;
         }
 
-        if (!_.find(this.situation.players, function(player) {
-          return player.location === action.location;
-        })) {
+        if (movedPlayerObject.location === action.location) {
+          return false;
+        }
+
+        if (!_.find(this.situation.players, function(player) { return player.location === action.location; })) {
           return false;
         }
         break;
@@ -465,34 +458,21 @@ function Game(eventSink, randy) {
         if (this.situation.research_centers_available === 0) {
           return false;
         }
-        if (_.find(this.situation.research_centers, function(center) {
-          return center.location === thePlayer.location;
-        })) {
+        if (_.find(this.situation.research_centers, function(center) { return center.location === thePlayer.location; })) {
           return false;
         };
 
-        if (thePlayer.role !== "Operations Expert") {
-          var card = _.find(thePlayer.hand, function(card) {
-            return card.location === thePlayer.location;
-          });
-          if (!card) {
-            return false;
-          }
+        if ((thePlayer.role !== "Operations Expert") && (!_.find(thePlayer.hand, function(card) { return card.location === thePlayer.location; }))) {
+          return false;
         }
         break;
       case "action_discover_cure":
         var self = this;
         var thePlayer = this.findPlayer(player);
-        if (thePlayer.role === "Scientist") {
-          if (action.cards.length !== 4) return false;
-        } else {
-          if (action.cards.length !== 5) return false;
+        if (((thePlayer.role === "Scientist") && (action.cards.length !== 4)) || (action.cards.length !== 5)) {
+          return false;
         }
-        var cards = _.map(action.cards, function(card) {
-          return _.find(thePlayer.hand, function(handCard) {
-            return _.isEqual(handCard, card);
-          });
-        });
+        var cards = _.map(action.cards, function(card) { return _.find(thePlayer.hand, function(handCard) { return _.isEqual(handCard, card); });});
         if (_.some(cards, _.isUndefined)) {
           return false;
         }
@@ -500,8 +480,7 @@ function Game(eventSink, randy) {
         if (disease.status !== "no_cure") {
           return false;
         }
-        if (!_.every(cards, function(card) {
-            return self.findDiseaseByLocation(card.location) === disease; })) {
+        if (!_.every(cards, function(card) { return self.findDiseaseByLocation(card.location) === disease; })) {
           return false;
         }
         break;
@@ -511,9 +490,7 @@ function Game(eventSink, randy) {
         if (!from || !to || from.id == to.id) {
           return false;
         }
-        var card = _.find(from.hand, function(card) {
-          return card.location === action.location; })
-        if (!card) {
+        if (!_.find(from.hand, function(card) { return card.location === action.location; })) {
           return false;
         }
         if (from.location !== to.location) {
@@ -531,20 +508,16 @@ function Game(eventSink, randy) {
           return false;
         }
         var thePlayer = this.findPlayer(player);
-        var other = action.player;
-        var theOther = this.findPlayer(other);
-        if (!theOther) { 
+        if (!this.is_valid_player(action.player)) { 
           return false;
         }
 
-        if (theOther.location === action.location) {
+        var movedPlayerObject = this.findPlayer(action.player);
+        if (movedPlayerObject.location === action.location) {
           return false;
         }
 
-        var card = _.find(thePlayer.hand, function(card) {
-          return card.special === "special_airlift";
-        });
-        if (!card) {
+        if (!_.find(thePlayer.hand, function(card) { return card.special === "special_airlift"; })) {
           return false;
         }
         break;
@@ -554,18 +527,14 @@ function Game(eventSink, randy) {
         }
         var thePlayer = this.findPlayer(player);
 
-        var card = _.find(thePlayer.hand, function(card) {
-          return card.special === action.name;
-        });
-        if (!card) {
+        if (!_.find(thePlayer.hand, function(card) { return card.special === action.name; })) {
           return false;
         }
 
         if (this.situation.research_centers_available === 0) {
           return false;
         }
-        if (_.find(this.situation.research_centers, function(center) {
-          return center.location === action.location; })) {
+        if (_.find(this.situation.research_centers, function(center) { return center.location === action.location; })) {
           return false;
         };
         break;
@@ -582,10 +551,7 @@ function Game(eventSink, randy) {
         break;
       case "discard_player_card":
         var thePlayer = this.findPlayer(player);
-        var card = _.find(thePlayer.hand, function(card) {
-          return _.isEqual(card, action.card);
-        });
-        if (!card) {
+        if (!_.find(thePlayer.hand, function(card) { return _.isEqual(card, action.card); })) {
           return false;
         }
         break;
@@ -611,6 +577,55 @@ function Game(eventSink, randy) {
     return true;
   }
 
+  this.eventRequriesApproval = function(eventName) {
+    eventsThatRequireApproval = ["action_drive", "action_charter_flight", "action_direct_flight", "action_converge", "special_airlift"]
+    return _.indexOf([eventsThatRequireApproval, eventName) > 0
+  }
+
+  this.emitMoveEventSink = function(event_type, player, location) {
+    eventSink.emit({
+      "event_type": event_type,
+      "player": player,
+      "location": location
+    });
+  }
+
+  this.medicEndMoveSpecialEffect = function(player) {
+    // Cure all known diseases at this location withotu using a move action
+    var medic = _.find(this.situation.players, function(player) { return player.role === "Medic"; });
+    if (medic) {
+      var location = this.findLocation(medic.location);
+      var cured = _.filter(this.situation.diseases, function(disease) { return disease.status === "cure_discovered"; });
+      _.each(cured, function(disease) {
+        var number = location.infections[disease.name];
+        if (number > 0) {
+          location.infections[disease.name] -= number;
+          disease.cubes += number;
+          eventSink.emit({
+            "event_type": "treat_disease",
+            "location": location.name,
+            "disease": disease.name,
+            "number": number
+          });
+        }
+      });
+    }
+  }
+
+  this.updateEradicatedDiseaseList = function() {
+    var eradicated = _.filter(this.situation.diseases, function(disease) {
+      return disease.status === "cure_discovered" && disease.cubes === disease.cubes_total;
+    });
+    for (i in eradicated) {
+      var disease = eradicated[i];
+      disease.status = "eradicated";
+      eventSink.emit({
+        "event_type": "eradicate_disease",
+        "disease": disease.name
+      });
+    }
+  }
+
   this.act = function(player, action) {
     if (!this.check_action_prerequisites(player, action)) {
       return false;
@@ -622,103 +637,43 @@ function Game(eventSink, randy) {
       return true;
     }
 
-    var approved = false;
+    var approved = (action.name === "approve_action");
     if (action.name === "approve_action") {
       action = this.situation.state.approve_action;
       player = this.situation.state.player;
       this.situation.state = this.situation.state.parent;
-      approved = true;
     }
-
+    var thePlayer = this.findPlayer(player);
     if (action.name.match(/^action_/)) {
+      var playerSelected = action.player;
+      var playerSelectedObject = this.findPlayer(playerSelected);
+
+      if (!approved && (playerSelected !== player) && this.eventRequriesApproval(action.name)) {
+        this.requestApproval(player, playerSelected, action);
+        return true;
+      }
+
       if (action.name === "action_pass") {
       } else if (action.name === "action_drive") {
-        var other = action.player;
-        var theOther = this.findPlayer(other);
-
-        if (!approved && other !== player) {
-          this.requestApproval(player, other, action);
-          return true;
-        } else {
-          theOther.location = action.location;
-          eventSink.emit({
-            "event_type": "move_pawn",
-            "player": other,
-            "location": action.location
-          });
-        }
+        playerSelectedObject.location = action.location;
+        this.emitMoveEventSink("move_pawn", playerSelected, action.location);
       } else if (action.name === "action_charter_flight") {
-        var thePlayer = this.findPlayer(player);
-        var other = action.player;
-        var theOther = this.findPlayer(other);
-        var card = _.find(thePlayer.hand, function(card) {
-          return card.location === thePlayer.location; 
-        })
-
-        if (!approved && other !== player) {
-          this.requestApproval(player, other, action);
-          return true;
-        } else {
-          this.discardPlayerCard(player, card);
-          theOther.location = action.location;
-          eventSink.emit({
-            "event_type": "move_pawn",
-            "player": other,
-            "location": action.location
-          });
-        }
+        var card = _.find(thePlayer.hand, function(card) { return card.location === thePlayer.location; });
+        this.discardPlayerCard(player, card);
+        playerSelectedObject.location = action.location;
+        this.emitMoveEventSink("move_pawn", playerSelected, action.location);
       } else if (action.name === "action_direct_flight") {
-        var thePlayer = this.findPlayer(player);
-        var other = action.player;
-        var theOther = this.findPlayer(other);
-        var card = _.find(thePlayer.hand, function(card) {
-          return card.location === action.location;
-        })
-
-        if (!approved && other !== player) {
-          this.requestApproval(player, other, action);
-          return true;
-        } else {
-          this.discardPlayerCard(player, card);
-          theOther.location = action.location;
-          eventSink.emit({
-            "event_type": "move_pawn",
-            "player": other,
-            "location": action.location
-          });
-        }
+        var card = _.find(thePlayer.hand, function(card) { return card.location === action.location; });
+        this.discardPlayerCard(player, card);
+        playerSelectedObject.location = action.location;
+        this.emitMoveEventSink("move_pawn", playerSelected, action.location);
       } else if (action.name === "action_shuttle_flight") {
-        var other = action.player;
-        var theOther = this.findPlayer(other);
-
-        if (!approved && other !== player) {
-          this.requestApproval(player, other, action);
-          return true;
-        } else {
-          theOther.location = action.location;
-          eventSink.emit({
-            "event_type": "move_pawn",
-            "player": other,
-            "location": action.location
-          });
-        }
+        playerSelectedObject.location = action.location;
+        this.emitMoveEventSink("move_pawn", playerSelected, action.location);
       } else if (action.name === "action_converge") {
-        var other = action.player;
-        var theOther = this.findPlayer(other);
-
-        if (!approved && other !== player) {
-          this.requestApproval(player, other, action);
-          return true;
-        } else {
-          theOther.location = action.location;
-          eventSink.emit({
-            "event_type": "move_pawn",
-            "player": other,
-            "location": action.location
-          });
-        }
+        playerSelectedObject.location = action.location;
+        this.emitMoveEventSink("move_pawn", playerSelected, action.location);
       } else if (action.name === "action_treat_disease") {
-        var thePlayer = this.findPlayer(player);
         var location = this.findLocation(thePlayer.location);
         var disease = this.findDisease(action.disease);
         var number = 1;
@@ -734,12 +689,8 @@ function Game(eventSink, randy) {
           "number": number
         });
       } else if (action.name === "action_build_research_center") {
-        var thePlayer = this.findPlayer(player);
-
         if (thePlayer.role !== "Operations Expert") {
-          var card = _.find(thePlayer.hand, function(card) {
-            return card.location === thePlayer.location;
-          });
+          var card = _.find(thePlayer.hand, function(card) { return card.location === thePlayer.location;});
           this.discardPlayerCard(player, card);
         }
 
@@ -751,12 +702,7 @@ function Game(eventSink, randy) {
         this.situation.research_centers_available--;
       } else if (action.name === "action_discover_cure") {
         var self = this;
-        var thePlayer = this.findPlayer(player);
-        var cards = _.map(action.cards, function(card) {
-          return _.find(thePlayer.hand, function(handCard) {
-            return _.isEqual(handCard, card);
-          });
-        });
+        var cards = _.map(action.cards, function(card) { return _.find(thePlayer.hand, function(handCard) { return _.isEqual(handCard, card); }); });
         _.each(cards, function(card) {
           self.discardPlayerCard(player, card);
         });
@@ -768,9 +714,7 @@ function Game(eventSink, randy) {
       } else if (action.name === "action_share_knowledge") {
         var from = this.findPlayer(action.from_player);
         var to = this.findPlayer(action.to_player);
-        var card = _.find(from.hand, function(card) {
-          return card.location === action.location;
-        })
+        var card = _.find(from.hand, function(card) { return card.location === action.location; })
 
         var other = player === to.id ? from.id : to.id;
         if (!approved) {
@@ -808,30 +752,19 @@ function Game(eventSink, randy) {
         this.emitStateChange();
       }
     } else if (action.name === "special_airlift") {
-      var thePlayer = this.findPlayer(player);
-      var other = action.player;
-      var theOther = this.findPlayer(other);
-      var card = _.find(thePlayer.hand, function(card) {
-        return card.special === "special_airlift";
-      });
+      var playerSelected = action.player;
+      var playerSelectedObject = this.findPlayer(playerSelected);
+      var card = _.find(thePlayer.hand, function(card) { return card.special === "special_airlift"; });
 
-      if (!approved && other !== player) {
-        this.requestApproval(player, other, action);
-        return true;
-      } else {
-        this.discardPlayerCard(player, card);
-        theOther.location = action.location;
-        eventSink.emit({
-          "event_type": "move_pawn",
-          "player": other,
-          "location": action.location
-        });
-      }
-    } else if (action.name === "special_government_grant") {
-      var thePlayer = this.findPlayer(player);
-      var card = _.find(thePlayer.hand, function(card) {
-        return card.special === action.name;
+      this.discardPlayerCard(player, card);
+      playerSelectedObject.location = action.location;
+      eventSink.emit({
+        "event_type": "move_pawn",
+        "player": playerSelected,
+        "location": action.location
       });
+    } else if (action.name === "special_government_grant") {
+      var card = _.find(thePlayer.hand, function(card) { return card.special === action.name; });
 
       this.discardPlayerCard(player, card);
       eventSink.emit({
@@ -849,14 +782,10 @@ function Game(eventSink, randy) {
         this.emitStateChange();
       }
     } else if (action.name === "discard_player_card") {
-      var thePlayer = this.findPlayer(player);
-      var card = _.find(thePlayer.hand, function(card) {
-        return _.isEqual(card, action.card);
-      });
+      var card = _.find(thePlayer.hand, function(card) { return _.isEqual(card, action.card); });
+
       this.discardPlayerCard(player, card);
-      if (this.situation.state.name === "hand_limit_exceeded" &&
-          this.situation.state.player === player &&
-          thePlayer.hand.length <= this.situation.max_player_cards) {
+      if ((this.situation.state.name === "hand_limit_exceeded") && (this.situation.state.player === player) && (thePlayer.hand.length <= this.situation.max_player_cards)) {
         if (this.situation.state.parent.name === "player_actions") {
           this.resumePlayerActions();
         } else {
@@ -876,9 +805,7 @@ function Game(eventSink, randy) {
       this.situation.state.draws_remaining--;
       if (this.situation.state.draws_remaining === 0) {
         var players = this.situation.players;
-        var index = _.indexOf(players, _.find(players, function(p) {
-          return p.id === player;
-        }));
+        var index = _.indexOf(players, _.find(players, function(p) { return p.id === player; }));
         var nextPlayer = index + 1 === players.length ? players[0] : players[index + 1];
         this.situation.state = {
           "name": "player_actions",
@@ -892,41 +819,11 @@ function Game(eventSink, randy) {
       return false;
     }
 
-    var medic = _.find(this.situation.players, function(player) { return player.role === "Medic"; });
-    if (medic) {
-      var location = this.findLocation(medic.location);
-      var cured = _.filter(this.situation.diseases, function(disease) { return disease.status === "cure_discovered"; });
-      _.each(cured, function(disease) {
-        var number = location.infections[disease.name];
-        if (number > 0) {
-          location.infections[disease.name] -= number;
-          disease.cubes += number;
-          eventSink.emit({
-            "event_type": "treat_disease",
-            "location": location.name,
-            "disease": disease.name,
-            "number": number
-          });
-        }
-      });
-    }
+    this.medicEndMoveSpecialEffect(player);
+    this.updateEradicatedDiseaseList();
 
-    var eradicated = _.filter(this.situation.diseases, function(disease) {
-      return disease.status === "cure_discovered" && disease.cubes === disease.cubes_total;
-    });
-    for (i in eradicated) {
-      var disease = eradicated[i];
-      disease.status = "eradicated";
-      eventSink.emit({
-        "event_type": "eradicate_disease",
-        "disease": disease.name
-      });
-    }
-
-    var active = _.find(this.situation.diseases, function(disease) {
-      return disease.status !== "eradicated";
-    });
-    if (!active) {
+    var activeDisease = _.find(this.situation.diseases, function(disease) { return disease.status !== "eradicated"; });
+    if (!activeDisease) {
       this.situation.state = { "name": "victory", "terminal": true };
       this.emitStateChange();
     }
