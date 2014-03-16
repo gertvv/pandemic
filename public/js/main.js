@@ -131,6 +131,9 @@ app.controller('LobbyCtrl', function($scope, GameState) {
 });
 
 app.controller('ActionsCtrl', function($scope, GameState) {
+  $scope.oneQuietNight = function() {
+    GameState.act({ "name": "special_one_quiet_night" });
+  };
   $scope.pass = function() {
     GameState.act({ "name": "action_pass" });
   };

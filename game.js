@@ -393,6 +393,16 @@ function Game(eventSink, randy) {
           return false;
         };
         break;
+      case "special_one_quiet_night":
+        if (this.situation.state.name === "epidemic") {
+          return false;
+        }
+        var thePlayer = this.findPlayer(player);
+
+        if (!this.getCard(thePlayer.hand, 'special', action.name)) {
+          return false;
+        }
+        break;
       case "draw_player_card":
         if (this.situation.state.name !== (action.name + 's')) {
           return false;
@@ -410,6 +420,11 @@ function Game(eventSink, randy) {
         }
         if (player !== this.situation.state.player) {
           return false;
+        }
+        if (this.situation.quiet_night === true) {
+          this.situation.quiet_night = false;
+          this.situation.state.draws_remaining = 1; // subtraction happens after this.
+          return true;
         }
         if (!this.drawInfection(1)) { // Defeat
           return true;
@@ -606,6 +621,9 @@ function Game(eventSink, randy) {
       });
       this.situation.research_centers.push({ "location": thePlayer.location });
       this.situation.research_centers_available--;
+    } else if (action.name === "special_one_quiet_night") {
+      this.discardPlayerCard(player, card);
+      this.situation.quiet_night = true;
     } else {
       return false;
     }
