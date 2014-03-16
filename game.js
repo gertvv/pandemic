@@ -174,13 +174,27 @@ function Game(eventSink, randy) {
   };
 
   this.startInfectionPhase = function(player) {
-    var rate = this.situation.infection_rate_levels[this.situation.infection_rate_index].rate;
-    this.situation.state = {
-      "name": "draw_infection_cards",
-      "player": player,
-      "draws_remaining": rate,
-      "terminal": false
-    };
+    if (this.situation.quiet_night === true) {
+      this.situation.quiet_night = false;
+      var players = this.situation.players;
+      var index = _.indexOf(players, _.find(players, function(p) { return p.id === player; }));
+      var nextPlayer = index + 1 === players.length ? players[0] : players[index + 1];
+
+      this.situation.state = {
+        "name": "player_actions",
+        "player": nextPlayer.id,
+        "actions_remaining": 4,
+        "terminal": false
+      };
+    } else {
+      var rate = this.situation.infection_rate_levels[this.situation.infection_rate_index].rate;
+      this.situation.state = {
+        "name": "draw_infection_cards",
+        "player": player,
+        "draws_remaining": rate,
+        "terminal": false
+      };
+    }
     this.emitStateChange();
   }
 
@@ -420,11 +434,6 @@ function Game(eventSink, randy) {
         }
         if (player !== this.situation.state.player) {
           return false;
-        }
-        if (this.situation.quiet_night === true) {
-          this.situation.quiet_night = false;
-          this.situation.state.draws_remaining = 1; // subtraction happens after this.
-          return true;
         }
         if (!this.drawInfection(1)) { // Defeat
           return true;

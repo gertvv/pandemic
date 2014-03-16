@@ -57,7 +57,7 @@ Gameplay features:
  - special events
    [ ] resilient population
    [x] government grant
-   [ ] one quiet night
+   [x] one quiet night
    [x] airlift
    [ ] forecast
  - share knowledge UI
