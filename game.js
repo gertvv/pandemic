@@ -539,7 +539,8 @@ function Game(eventSink, randy) {
         };
         break;
       case "draw_player_card":
-        if (this.situation.state.name !== "draw_player_cards") {
+      case "draw_infection_card":
+        if (this.situation.state.name !== (action.name + 's')) {
           return false;
         }
         if (player !== this.situation.state.player) {
@@ -561,17 +562,6 @@ function Game(eventSink, randy) {
         }
         if (player !== this.situation.state.player) {
           return false;
-        }
-        break;
-      case "draw_infection_card":
-        if (this.situation.state.name !== "draw_infection_cards") {
-          return false;
-        }
-        if (player !== this.situation.state.player) {
-          return false;
-        }
-        if (!this.drawInfection(1)) { // Defeat
-          return true;
         }
     }
     return true;
