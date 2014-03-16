@@ -384,7 +384,7 @@ function Game(eventSink, randy) {
           return false;
         }
 
-        if (!_.find(thePlayer.hand, function(card) { return card.location === thePlayer.location; })) {
+        if (!this.getCard(thePlayer.hand, 'location', thePlayer.location)) {
           return false;
         }
         break;
@@ -399,7 +399,7 @@ function Game(eventSink, randy) {
           return false;
         }
 
-        if (!_.find(thePlayer.hand, function(card) { return card.location === action.location; })) {
+        if (!this.getCard(thePlayer.hand, 'location', action.location)) {
           return false;
         }
 
@@ -462,7 +462,7 @@ function Game(eventSink, randy) {
           return false;
         };
 
-        if ((thePlayer.role !== "Operations Expert") && (!_.find(thePlayer.hand, function(card) { return card.location === thePlayer.location; }))) {
+        if ((thePlayer.role !== "Operations Expert") && (!this.getCard(thePlayer.hand, 'location', thePlayer.location)) {
           return false;
         }
         break;
@@ -490,7 +490,7 @@ function Game(eventSink, randy) {
         if (!from || !to || from.id == to.id) {
           return false;
         }
-        if (!_.find(from.hand, function(card) { return card.location === action.location; })) {
+        if (!this.getCard(from.hand, 'location', action.location)) {
           return false;
         }
         if (from.location !== to.location) {
@@ -517,7 +517,7 @@ function Game(eventSink, randy) {
           return false;
         }
 
-        if (!_.find(thePlayer.hand, function(card) { return card.special === "special_airlift"; })) {
+        if (!this.getCard(thePlayer.hand, 'special', action.name)) {
           return false;
         }
         break;
@@ -527,7 +527,7 @@ function Game(eventSink, randy) {
         }
         var thePlayer = this.findPlayer(player);
 
-        if (!_.find(thePlayer.hand, function(card) { return card.special === action.name; })) {
+        if (!this.getCard(thePlayer.hand, 'special', action.name) {
           return false;
         }
 
@@ -569,7 +569,7 @@ function Game(eventSink, randy) {
 
   this.eventRequriesApproval = function(eventName) {
     eventsThatRequireApproval = ["action_drive", "action_charter_flight", "action_direct_flight", "action_converge", "special_airlift"]
-    return _.indexOf([eventsThatRequireApproval, eventName) > 0
+    return _.indexOf(eventsThatRequireApproval, eventName) > 0
   }
 
   this.emitMoveEventSink = function(event_type, player, location) {
@@ -616,27 +616,28 @@ function Game(eventSink, randy) {
     }
   }
 
+  this.getCard = function(hand, attribute, targetToMatch) {
+    return _.find(hand, function(card) { return card[attribute] === targetToMatch; });
+  }
+
+  this.movePawn = function(newLocation, selectedPawn, player, card) {
+    if (card && player) {
+      this.discardPlayerCard(player, card);
+    }
+    selectedPawn.location = newLocation;
+    this.emitMoveEventSink("move_pawn", selectedPawn, newLocation);
+  }
+
   this.performRegularAction = function(thePlayer, playerSelected, playerSelectedObject, approved, player, action) {
     if (action.name === "action_pass") {
-    } else if (action.name === "action_drive") {
-      playerSelectedObject.location = action.location;
-      this.emitMoveEventSink("move_pawn", playerSelected, action.location);
+    } else if (_.indexOf(["action_drive", "action_shuttle_flight", "action_converge"], action.name) > 0) {
+      this.movePawn(action.location, playerSelectedObject);
     } else if (action.name === "action_charter_flight") {
-      var card = _.find(thePlayer.hand, function(card) { return card.location === thePlayer.location; });
-      this.discardPlayerCard(player, card);
-      playerSelectedObject.location = action.location;
-      this.emitMoveEventSink("move_pawn", playerSelected, action.location);
+      var card = this.getCard(thePlayer.hand, 'location', thePlayer.location);
+      this.movePawn(action.location, playerSelectedObject, player, card);
     } else if (action.name === "action_direct_flight") {
-      var card = _.find(thePlayer.hand, function(card) { return card.location === action.location; });
-      this.discardPlayerCard(player, card);
-      playerSelectedObject.location = action.location;
-      this.emitMoveEventSink("move_pawn", playerSelected, action.location);
-    } else if (action.name === "action_shuttle_flight") {
-      playerSelectedObject.location = action.location;
-      this.emitMoveEventSink("move_pawn", playerSelected, action.location);
-    } else if (action.name === "action_converge") {
-      playerSelectedObject.location = action.location;
-      this.emitMoveEventSink("move_pawn", playerSelected, action.location);
+      var card = this.getCard(thePlayer.hand, 'location', action.location);
+      this.movePawn(action.location, playerSelectedObject, player, card);
     } else if (action.name === "action_treat_disease") {
       var location = this.findLocation(thePlayer.location);
       var disease = this.findDisease(action.disease);
@@ -654,7 +655,7 @@ function Game(eventSink, randy) {
       });
     } else if (action.name === "action_build_research_center") {
       if (thePlayer.role !== "Operations Expert") {
-        var card = _.find(thePlayer.hand, function(card) { return card.location === thePlayer.location;});
+        var card = this.getCard(thePlayer.hand, 'location', thePlayer.location);
         this.discardPlayerCard(player, card);
       }
 
@@ -678,7 +679,7 @@ function Game(eventSink, randy) {
     } else if (action.name === "action_share_knowledge") {
       var from = this.findPlayer(action.from_player);
       var to = this.findPlayer(action.to_player);
-      var card = _.find(from.hand, function(card) { return card.location === action.location; })
+      var card = this.getCard(from.hand, 'location', action.location);
 
       var other = player === to.id ? from.id : to.id;
       if (!approved) {
@@ -736,7 +737,7 @@ function Game(eventSink, randy) {
 
   this.isRegulatoryCardAction = function(actionName) {
     regulatoryCardActions = ["draw_player_card", "discard_player_card", "increase_infection_intensity", "draw_infection_card"]
-    return _.indexOf([regulatoryCardActions, actionName) > 0
+    return _.indexOf(regulatoryCardActions, actionName) > 0
   }
 
   this.performRegulatoryCardAction = function(player, action) {
@@ -825,7 +826,8 @@ function Game(eventSink, randy) {
     } else if (action.name.match(/^special_/)) {
       var playerSelected = action.player;
       var playerSelectedObject = this.findPlayer(playerSelected);
-      var card = _.find(thePlayer.hand, function(card) { return card.special === action.name; });
+      var card = this.getCard(thePlayer.hand, 'special', action.name);
+
       if (!this.performSpecialAction(playerSelected, playerSelectedObject, card, player, action)) {
         return false;
       }
