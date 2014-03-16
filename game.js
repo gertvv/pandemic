@@ -629,85 +629,96 @@ function Game(eventSink, randy) {
   }
 
   this.performRegularAction = function(thePlayer, playerSelected, playerSelectedObject, approved, player, action) {
-    if (action.name === "action_pass") {
-    } else if (_.indexOf(["action_drive", "action_shuttle_flight", "action_converge"], action.name) > 0) {
-      this.movePawn(action.location, playerSelectedObject);
-    } else if (action.name === "action_charter_flight") {
-      var card = this.getCard(thePlayer.hand, 'location', thePlayer.location);
-      this.movePawn(action.location, playerSelectedObject, player, card);
-    } else if (action.name === "action_direct_flight") {
-      var card = this.getCard(thePlayer.hand, 'location', action.location);
-      this.movePawn(action.location, playerSelectedObject, player, card);
-    } else if (action.name === "action_treat_disease") {
-      var location = this.findLocation(thePlayer.location);
-      var disease = this.findDisease(action.disease);
-      var number = 1;
-      if (disease.status === "cure_discovered" || thePlayer.role === "Medic") {
-        number = location.infections[disease.name];
-      }
-      location.infections[disease.name] -= number;
-      disease.cubes += number;
-      eventSink.emit({
-        "event_type": "treat_disease",
-        "location": location.name,
-        "disease": disease.name,
-        "number": number
-      });
-    } else if (action.name === "action_build_research_center") {
-      if (thePlayer.role !== "Operations Expert") {
+    switch (action.name) {
+      case "action_pass":
+        break;
+      case "action_drive":
+      case "action_shuttle_flight":
+      case "action_converge":
+        this.movePawn(action.location, playerSelectedObject);
+        break;
+      case "action_charter_flight":
         var card = this.getCard(thePlayer.hand, 'location', thePlayer.location);
-        this.discardPlayerCard(player, card);
-      }
-
-      eventSink.emit({
-        "event_type": "build_research_center",
-        "location": thePlayer.location
-      });
-      this.situation.research_centers.push({ "location": thePlayer.location });
-      this.situation.research_centers_available--;
-    } else if (action.name === "action_discover_cure") {
-      var self = this;
-      var cards = _.map(action.cards, function(card) { return _.find(thePlayer.hand, function(handCard) { return _.isEqual(handCard, card); }); });
-      _.each(cards, function(card) {
-        self.discardPlayerCard(player, card);
-      });
-      disease.status = "cure_discovered"
-      eventSink.emit({
-        "event_type": "discover_cure",
-        "disease": disease.name 
-      });
-    } else if (action.name === "action_share_knowledge") {
-      var from = this.findPlayer(action.from_player);
-      var to = this.findPlayer(action.to_player);
-      var card = this.getCard(from.hand, 'location', action.location);
-
-      var other = player === to.id ? from.id : to.id;
-      if (!approved) {
-        this.situation.state = {
-          "name": "approve_action",
-          "player": player,
-          "approve_player": other,
-          "approve_action": action,
-          "parent": this.situation.state,
-          "terminal": false
-        };
-        this.emitStateChange();
-        return true;
-      } else {
-        from.hand.splice(_.indexOf(from.hand, card), 1);
-        to.hand.push(card);
-        eventSink.emit({
-          "event_type": "transfer_player_card",
-          "from_player": from.id,
-          "to_player": to.id,
-          "card": card
-        });
-        if (to.hand.length > this.situation.max_player_cards) {
-          return this.handleHandLimitExceeded(to.id);
+        this.movePawn(action.location, playerSelectedObject, player, card);
+        break;
+      case "action_direct_flight":
+        var card = this.getCard(thePlayer.hand, 'location', action.location);
+        this.movePawn(action.location, playerSelectedObject, player, card);
+        break;
+      case "action_treat_disease":
+        var location = this.findLocation(thePlayer.location);
+        var disease = this.findDisease(action.disease);
+        var number = 1;
+        if (disease.status === "cure_discovered" || thePlayer.role === "Medic") {
+          number = location.infections[disease.name];
         }
-      }
-    } else {
-      return false;
+        location.infections[disease.name] -= number;
+        disease.cubes += number;
+        eventSink.emit({
+          "event_type": "treat_disease",
+          "location": location.name,
+          "disease": disease.name,
+          "number": number
+        });
+        break;
+      case "action_build_research_center":
+        if (thePlayer.role !== "Operations Expert") {
+          var card = this.getCard(thePlayer.hand, 'location', thePlayer.location);
+          this.discardPlayerCard(player, card);
+        }
+
+        eventSink.emit({
+          "event_type": "build_research_center",
+          "location": thePlayer.location
+        });
+        this.situation.research_centers.push({ "location": thePlayer.location });
+        this.situation.research_centers_available--;
+        break;
+      case "action_discover_cure":
+        var self = this;
+        var cards = _.map(action.cards, function(card) { return _.find(thePlayer.hand, function(handCard) { return _.isEqual(handCard, card); }); });
+        _.each(cards, function(card) {
+          self.discardPlayerCard(player, card);
+        });
+        disease.status = "cure_discovered"
+        eventSink.emit({
+          "event_type": "discover_cure",
+          "disease": disease.name 
+        });
+        break;
+      case "action_share_knowledge":
+        var from = this.findPlayer(action.from_player);
+        var to = this.findPlayer(action.to_player);
+        var card = this.getCard(from.hand, 'location', action.location);
+
+        var other = player === to.id ? from.id : to.id;
+        if (!approved) {
+          this.situation.state = {
+            "name": "approve_action",
+            "player": player,
+            "approve_player": other,
+            "approve_action": action,
+            "parent": this.situation.state,
+            "terminal": false
+          };
+          this.emitStateChange();
+          return true;
+        } else {
+          from.hand.splice(_.indexOf(from.hand, card), 1);
+          to.hand.push(card);
+          eventSink.emit({
+            "event_type": "transfer_player_card",
+            "from_player": from.id,
+            "to_player": to.id,
+            "card": card
+          });
+          if (to.hand.length > this.situation.max_player_cards) {
+            return this.handleHandLimitExceeded(to.id);
+          }
+        }
+        break;
+      default:
+        return false;
     }
     return true;
   }
@@ -741,48 +752,53 @@ function Game(eventSink, randy) {
   }
 
   this.performRegulatoryCardAction = function(player, action) {
-    if (action.name === "draw_player_card") {
-      if (this.situation.state.draws_remaining === 0) {
-        this.startInfectionPhase(player);
-      } else if (this.situation.state.name === "draw_player_cards") {
-        this.enterDrawState(player, this.situation.state.draws_remaining);
-      } else {
-        this.emitStateChange();
-      }
-    } else if (action.name === "discard_player_card") {
-      var card = _.find(thePlayer.hand, function(card) { return _.isEqual(card, action.card); });
 
-      this.discardPlayerCard(player, card);
-      if ((this.situation.state.name === "hand_limit_exceeded") && (this.situation.state.player === player) && (thePlayer.hand.length <= this.situation.max_player_cards)) {
-        if (this.situation.state.parent.name === "player_actions") {
-          this.resumePlayerActions();
+    switch (action.name) {
+      case "draw_player_card":
+        if (this.situation.state.draws_remaining === 0) {
+          this.startInfectionPhase(player);
+        } else if (this.situation.state.name === "draw_player_cards") {
+          this.enterDrawState(player, this.situation.state.draws_remaining);
         } else {
-          this.resumeDrawPlayerCards();
+          this.emitStateChange();
         }
-      }
-    } else if (action.name === "increase_infection_intensity") {
-      var cards = randy.shuffle(this.situation.infection_cards_discard);
-      eventSink.emit({
-        "event_type": "infection_cards_restack",
-        "cards": cards
-      });
-      this.situation.infection_cards_discard = [];
-      this.situation.infection_cards_draw = cards.concat(this.situation.infection_cards_draw);
-      this.resumeDrawPlayerCards();
-    } else if (action.name === "draw_infection_card") {
-      this.situation.state.draws_remaining--;
-      if (this.situation.state.draws_remaining === 0) {
-        var players = this.situation.players;
-        var index = _.indexOf(players, _.find(players, function(p) { return p.id === player; }));
-        var nextPlayer = index + 1 === players.length ? players[0] : players[index + 1];
-        this.situation.state = {
-          "name": "player_actions",
-          "player": nextPlayer.id,
-          "actions_remaining": 4,
-          "terminal": false
-        };
-      }
-      this.emitStateChange();
+        break;
+      case "discard_player_card":
+        var card = _.find(thePlayer.hand, function(card) { return _.isEqual(card, action.card); });
+
+        this.discardPlayerCard(player, card);
+        if ((this.situation.state.name === "hand_limit_exceeded") && (this.situation.state.player === player) && (thePlayer.hand.length <= this.situation.max_player_cards)) {
+          if (this.situation.state.parent.name === "player_actions") {
+            this.resumePlayerActions();
+          } else {
+            this.resumeDrawPlayerCards();
+          }
+        }
+        break;
+      case "increase_infection_intensity":
+        var cards = randy.shuffle(this.situation.infection_cards_discard);
+        eventSink.emit({
+          "event_type": "infection_cards_restack",
+          "cards": cards
+        });
+        this.situation.infection_cards_discard = [];
+        this.situation.infection_cards_draw = cards.concat(this.situation.infection_cards_draw);
+        this.resumeDrawPlayerCards();
+        break;
+      case "draw_infection_card":
+        this.situation.state.draws_remaining--;
+        if (this.situation.state.draws_remaining === 0) {
+          var players = this.situation.players;
+          var index = _.indexOf(players, _.find(players, function(p) { return p.id === player; }));
+          var nextPlayer = index + 1 === players.length ? players[0] : players[index + 1];
+          this.situation.state = {
+            "name": "player_actions",
+            "player": nextPlayer.id,
+            "actions_remaining": 4,
+            "terminal": false
+          };
+        }
+        this.emitStateChange();
     }
   }
 
