@@ -1,21 +1,15 @@
 var _ = require('underscore');
 var clone = require('clone');
 
-function nameMatcher(name) {
-  return function(arg) {
-    return arg.name === name;
-  };
-}
-
 function Game(eventSink, randy) {
   this.situation = null;
 
   this.findLocation = function(locationName) {
-    return _.find(this.situation.locations, nameMatcher(locationName));
+    return _.findWhere(this.situation.locations, {name: locationName})
   }
 
   this.findDisease = function(diseaseName) {
-    return _.find(this.situation.diseases, nameMatcher(diseaseName));
+    return _.findWhere(this.situation.diseases, {name: diseaseName})
   }
 
   this.findDiseaseByLocation = function(locationName) {
@@ -24,6 +18,7 @@ function Game(eventSink, randy) {
   }
 
   this.findPlayer = function(playerId) {
+    // return _.findWhere()
     return _.find(this.situation.players, function(player) { return player.id === playerId; });
   }
 
@@ -399,7 +394,6 @@ function Game(eventSink, randy) {
         };
         break;
       case "draw_player_card":
-      case "draw_infection_card":
         if (this.situation.state.name !== (action.name + 's')) {
           return false;
         }
@@ -407,6 +401,17 @@ function Game(eventSink, randy) {
           return false;
         }
         if (!this.drawPlayerCard(player)) { // Defeat
+          return true;
+        }
+        break;
+      case "draw_infection_card":
+        if (this.situation.state.name !== (action.name + 's')) {
+          return false;
+        }
+        if (player !== this.situation.state.player) {
+          return false;
+        }
+        if (!this.drawInfection(1)) { // Defeat
           return true;
         }
         break;
@@ -429,7 +434,7 @@ function Game(eventSink, randy) {
 
   this.eventRequriesApproval = function(eventName) {
     eventsThatRequireApproval = ["action_drive", "action_charter_flight", "action_direct_flight", "action_converge", "special_airlift"]
-    return _.indexOf(eventsThatRequireApproval, eventName) > 0
+    return _.contains(eventsThatRequireApproval, eventName)
   }
 
   this.emitMoveEventSink = function(event_type, player, location) {
@@ -609,7 +614,7 @@ function Game(eventSink, randy) {
 
   this.isRegulatoryCardAction = function(actionName) {
     regulatoryCardActions = ["draw_player_card", "discard_player_card", "increase_infection_intensity", "draw_infection_card"]
-    return _.indexOf(regulatoryCardActions, actionName) > 0
+    return _.contains(regulatoryCardActions, actionName)
   }
 
   this.performRegulatoryCardAction = function(player, action) {
@@ -701,6 +706,7 @@ function Game(eventSink, randy) {
         this.emitStateChange();
       }
     } else if (action.name.match(/^special_/)) {
+
       var playerSelected = action.player;
       var playerSelectedObject = this.findPlayer(playerSelected);
       var card = this.getCard(thePlayer.hand, 'special', action.name);
