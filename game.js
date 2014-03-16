@@ -363,146 +363,6 @@ function Game(eventSink, randy) {
           return false;
         }
         break;
-      case "action_drive":
-        if (this.is_not_dispatcher_and_other_player_selected(player, action) || !this.is_valid_player(action.player)) {
-          return false;
-        }
-        var movedPlayerObject = this.findPlayer(action.player);
-        var source = this.findLocation(movedPlayerObject.location);
-        if (!_.contains(source.adjacent, action.location)) {
-          return false;
-        }
-        break;
-      case "action_charter_flight":
-        var thePlayer = this.findPlayer(player);
-        if this.is_not_dispatcher_and_other_player_selected(player, action) {
-          return false;
-        }
-
-        var movedPlayerObject = this.findPlayer(action.player);
-        if (movedPlayerObject.location === action.location) {
-          return false;
-        }
-
-        if (!this.getCard(thePlayer.hand, 'location', thePlayer.location)) {
-          return false;
-        }
-        break;
-      case "action_direct_flight":
-        var thePlayer = this.findPlayer(player);
-        if this.is_not_dispatcher_and_other_player_selected(player, action) {
-          return false;
-        }
-
-        var movedPlayerObject = this.findPlayer(action.player);
-        if (movedPlayerObject.location === action.location) {
-          return false;
-        }
-
-        if (!this.getCard(thePlayer.hand, 'location', action.location)) {
-          return false;
-        }
-
-        break;
-      case "action_shuttle_flight":
-        if this.is_not_dispatcher_and_other_player_selected(player, action) {
-          return false;
-        }
-
-        var movedPlayerObject = this.findPlayer(action.player);
-        var origin = movedPlayerObject.location;
-        var destination = action.location;
-        if (origin === destination) {
-          return false;
-        }
-
-        if (!_.find(this.situation.research_centers, function(center) { return center.location === origin; })) {
-          return false;
-        }
-        if (!_.find(this.situation.research_centers, function(center) { return center.location === destination; })) {
-          return false;
-        }
-        break;
-      case "action_converge":
-        var thePlayer = this.findPlayer(player);
-        if (thePlayer.role !== "Dispatcher") {
-          return false;
-        }
-
-        var movedPlayerObject = this.findPlayer(action.player);
-        if (!this.is_valid_player(action.player)) {
-          return false;
-        }
-
-        if (movedPlayerObject.location === action.location) {
-          return false;
-        }
-
-        if (!_.find(this.situation.players, function(player) { return player.location === action.location; })) {
-          return false;
-        }
-        break;
-      case "action_treat_disease":
-        var thePlayer = this.findPlayer(player);
-        var location = this.findLocation(thePlayer.location);
-        var disease = this.findDisease(action.disease);
-        if (_.isUndefined(disease)) {
-          return false;
-        }
-        if (location.infections[disease.name] === 0) {
-          return false;
-        }
-        break;
-      case "action_build_research_center":
-        var thePlayer = this.findPlayer(player);
-        if (this.situation.research_centers_available === 0) {
-          return false;
-        }
-        if (_.find(this.situation.research_centers, function(center) { return center.location === thePlayer.location; })) {
-          return false;
-        };
-
-        if ((thePlayer.role !== "Operations Expert") && (!this.getCard(thePlayer.hand, 'location', thePlayer.location)) {
-          return false;
-        }
-        break;
-      case "action_discover_cure":
-        var self = this;
-        var thePlayer = this.findPlayer(player);
-        if (((thePlayer.role === "Scientist") && (action.cards.length !== 4)) || (action.cards.length !== 5)) {
-          return false;
-        }
-        var cards = _.map(action.cards, function(card) { return _.find(thePlayer.hand, function(handCard) { return _.isEqual(handCard, card); });});
-        if (_.some(cards, _.isUndefined)) {
-          return false;
-        }
-        var disease = self.findDiseaseByLocation(cards[0].location);
-        if (disease.status !== "no_cure") {
-          return false;
-        }
-        if (!_.every(cards, function(card) { return self.findDiseaseByLocation(card.location) === disease; })) {
-          return false;
-        }
-        break;
-      case "action_share_knowledge":
-        var from = this.findPlayer(action.from_player);
-        var to = this.findPlayer(action.to_player);
-        if (!from || !to || from.id == to.id) {
-          return false;
-        }
-        if (!this.getCard(from.hand, 'location', action.location)) {
-          return false;
-        }
-        if (from.location !== to.location) {
-          return false;
-        }
-        if (from.role !== "Researcher" && from.location !== action.location) {
-          return false;
-        }
-        if (!(player === to.id || player === from.id)) {
-          return false;
-        }
-        break;
       case "special_airlift":
         if (this.situation.state.name === "epidemic") {
           return false;
@@ -527,7 +387,7 @@ function Game(eventSink, randy) {
         }
         var thePlayer = this.findPlayer(player);
 
-        if (!this.getCard(thePlayer.hand, 'special', action.name) {
+        if (!this.getCard(thePlayer.hand, 'special', action.name)) {
           return false;
         }
 
@@ -724,6 +584,7 @@ function Game(eventSink, randy) {
   }
 
   this.performSpecialAction = function(playerSelected, playerSelectedObject, card, player, action) {
+    var thePlayer = this.findPlayer(player);
     if (action.name === "special_airlift") {
       this.discardPlayerCard(player, card);
       playerSelectedObject.location = action.location;
@@ -752,7 +613,7 @@ function Game(eventSink, randy) {
   }
 
   this.performRegulatoryCardAction = function(player, action) {
-
+    var thePlayer = this.findPlayer(player);
     switch (action.name) {
       case "draw_player_card":
         if (this.situation.state.draws_remaining === 0) {
