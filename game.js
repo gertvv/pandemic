@@ -524,15 +524,15 @@ function Game(eventSink, randy) {
       case "action_drive":
       case "action_shuttle_flight":
       case "action_converge":
-        this.movePawn(action.location, playerSelectedObject);
+        this.movePawn(action.location, playerSelected);
         break;
       case "action_charter_flight":
         var card = this.getCard(thePlayer.hand, 'location', thePlayer.location);
-        this.movePawn(action.location, playerSelectedObject, player, card);
+        this.movePawn(action.location, playerSelected, player, card);
         break;
       case "action_direct_flight":
         var card = this.getCard(thePlayer.hand, 'location', action.location);
-        this.movePawn(action.location, playerSelectedObject, player, card);
+        this.movePawn(action.location, playerSelected, player, card);
         break;
       case "action_treat_disease":
         var location = this.findLocation(thePlayer.location);

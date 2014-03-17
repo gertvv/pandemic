@@ -131,6 +131,9 @@ app.controller('LobbyCtrl', function($scope, GameState) {
 });
 
 app.controller('ActionsCtrl', function($scope, GameState) {
+  $scope.governmentGrant = function(location) {
+    GameState.act({ "name": "special_government_grant", location: location });
+  }
   $scope.oneQuietNight = function() {
     GameState.act({ "name": "special_one_quiet_night" });
   };
@@ -138,9 +141,14 @@ app.controller('ActionsCtrl', function($scope, GameState) {
     GameState.act({ "name": "action_pass" });
   };
   $scope.drive = function(player, location) {
-    if (($scope.currentPlayer().id === $scope.playerToMove.id) || ($scope.currentPlayer().role === "Dispatcher")) {
+    if (!($scope.currentPlayer().id === $scope.playerToMove.id) && !($scope.currentPlayer().role === "Dispatcher")) {
       return;
     }
+    var playerObject = _.findWhere($scope.game.situation.players, {id: $scope.playerToMove.id}) || {};
+    if (playerObject.location === location) {
+      return;
+    }
+
     playerIds = _.pluck($scope.game.situation.players, "id")
     if (!_.contains(playerIds, player)) {
       return;
@@ -306,6 +314,13 @@ app.controller('ActionsCtrl', function($scope, GameState) {
       return player.id === $scope.user.id;
     })
   };
+  $scope.locationAdjacentAutocomplete = {
+    options: {
+      source: _.findWhere($scope.game.situation.locations, {name: $scope.currentPlayer().location}).adjacent,
+      minLength: 0,
+      select: function( event, ui ) {$scope.driveTarget = ui.label;}
+    }
+  }
   $scope.locationAutocomplete = {
     options: {
       source: _.map(GameState.game.situation.locations, function(location) { return location.name; })
