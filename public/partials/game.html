@@ -389,10 +389,10 @@
       <p>Take a card from the Infection Discard Pile and remove it from the game.</p>
       <form>
         <div ng-repeat="card in game.situation.infection_cards_discard">
-          <input type="radio" ng-model="resilientLocation" ng-attr-value="{{card.location}}">
+          <input type="radio" ng-model="resilientLocation.location" ng-attr-value="{{card.location}}">
           <pandemic-card card="card"></pandemic-card>
         </div>
-        <button class="button right" ng-click="resilientPopulation(resilientLocation)">Use</button>
+        <button class="button right" ng-click="resilientPopulation(resilientLocation.location)">Use</button>
       </form>
     </div>
 

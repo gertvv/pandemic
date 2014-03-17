@@ -55,7 +55,7 @@ TODO
 Gameplay features:
 
  - special events
-   [ ] resilient population
+   [x] resilient population
    [x] government grant
    [x] one quiet night
    [x] airlift

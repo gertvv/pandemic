@@ -137,6 +137,10 @@ app.controller('ActionsCtrl', function($scope, GameState) {
   $scope.oneQuietNight = function() {
     GameState.act({ "name": "special_one_quiet_night" });
   };
+  $scope.resilientLocation = { "location": null };
+  $scope.resilientPopulation = function(location) {
+    GameState.act({name: "special_resilient_population", location: location});
+  }
   $scope.pass = function() {
     GameState.act({ "name": "action_pass" });
   };

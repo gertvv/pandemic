@@ -18,7 +18,6 @@ function Game(eventSink, randy) {
   }
 
   this.findPlayer = function(playerId) {
-    // return _.findWhere()
     return _.find(this.situation.players, function(player) { return player.id === playerId; });
   }
 
@@ -417,6 +416,19 @@ function Game(eventSink, randy) {
           return false;
         }
         break;
+      case "special_resilient_population":
+        if (this.situation.state.name === "epidemic") {
+          return false;
+        }
+        var thePlayer = this.findPlayer(player);
+
+        if (!this.getCard(thePlayer.hand, 'special', action.name)) {
+          return false;
+        }
+        if (!_.contains(_.pluck(this.situation.infection_cards_discard, 'location'), action.location)) {
+          return false;
+        }
+        break;
       case "draw_player_card":
         if (this.situation.state.name !== (action.name + 's')) {
           return false;
@@ -633,6 +645,13 @@ function Game(eventSink, randy) {
     } else if (action.name === "special_one_quiet_night") {
       this.discardPlayerCard(player, card);
       this.situation.quiet_night = true;
+    } else if (action.name === "special_resilient_population") {
+      this.discardPlayerCard(player, card);
+      eventSink.emit({
+        "event_type": "discard_discarded_city",
+        "location": action.location
+      });
+      this.situation.infection_cards_discard = _.filter(this.situation.infection_cards_discard, function(card) { return card.location !== action.location });
     } else {
       return false;
     }

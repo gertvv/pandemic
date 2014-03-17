@@ -70,6 +70,12 @@ var Replay = function() {
     }
   ];
 
+  this.discard_discarded_city = [
+    function(e) {
+      situation.infection_cards_discard = _.filter(situation.infection_cards_discard, function(card) { return card.location !== e.location });
+    }
+  ];
+
   this.state_change = [
     function(e) {
       situation.state = e.state;
