@@ -657,13 +657,12 @@ function Game(eventSink, randy) {
         if (card && player) {
             this.discardPlayerCard(player, card);
         }
-        var selectedPawn = this.findPlayer(player);
-        selectedPawn.location = newLocation;
+        this.findPlayer(player).location = newLocation;
 
-        this.emitMoveEventSink("move_pawn", selectedPawn, newLocation);
+        this.emitMoveEventSink("move_pawn", player, newLocation);
     };
 
-    this.performRegularAction = function (thePlayer, approved, player, action) {
+    this.performRegularAction = function (thePlayer, playerSelected, approved, player, action) {
         var card, cards, location, disease, number, self, from, to, other;
         switch (action.name) {
         case "action_pass":
@@ -671,7 +670,7 @@ function Game(eventSink, randy) {
         case "action_drive":
         case "action_shuttle_flight":
         case "action_converge":
-            this.movePawn(action.location);
+            this.movePawn(action.location, playerSelected);
             break;
         case "action_charter_flight":
             card = this.getCard(thePlayer.hand, 'location', thePlayer.location);
@@ -884,7 +883,7 @@ function Game(eventSink, randy) {
                 return true;
             }
 
-            if (!this.performRegularAction(thePlayer, approved, player, action)) {
+            if (!this.performRegularAction(thePlayer, playerSelected, approved, player, action)) {
                 return false;
             }
 
