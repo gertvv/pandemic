@@ -599,7 +599,7 @@ function Game(eventSink, randy) {
     };
 
     this.eventRequriesApproval = function (eventName) {
-        var eventsThatRequireApproval = ["action_drive", "action_charter_flight", "action_direct_flight", "action_converge", "special_airlift"];
+        var eventsThatRequireApproval = ["action_drive", "action_charter_flight", "action_direct_flight", "action_shuttle_flight", "action_converge", "special_airlift"];
         return _.contains(eventsThatRequireApproval, eventName);
     };
 
@@ -653,13 +653,13 @@ function Game(eventSink, randy) {
         return _.find(hand, function (card) { return card[attribute] === targetToMatch; });
     };
 
-    this.movePawn = function (newLocation, player, card) {
+    this.movePawn = function (newLocation, playerSelected, player, card) {
         if (card && player) {
             this.discardPlayerCard(player, card);
         }
-        this.findPlayer(player).location = newLocation;
+        this.findPlayer(playerSelected).location = newLocation;
 
-        this.emitMoveEventSink("move_pawn", player, newLocation);
+        this.emitMoveEventSink("move_pawn", playerSelected, newLocation);
     };
 
     this.performRegularAction = function (thePlayer, playerSelected, approved, player, action) {
@@ -674,11 +674,11 @@ function Game(eventSink, randy) {
             break;
         case "action_charter_flight":
             card = this.getCard(thePlayer.hand, 'location', thePlayer.location);
-            this.movePawn(action.location, player, card);
+            this.movePawn(action.location, playerSelected, player, card);
             break;
         case "action_direct_flight":
             card = this.getCard(thePlayer.hand, 'location', action.location);
-            this.movePawn(action.location, player, card);
+            this.movePawn(action.location, playerSelected, player, card);
             break;
         case "action_treat_disease":
             location = this.findLocation(thePlayer.location);
