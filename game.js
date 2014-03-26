@@ -470,7 +470,7 @@ function Game(eventSink, randy) {
           return false;
         };
 
-        if ((thePlayer.role !== "Operations Expert") && (!this.getCard(thePlayer.hand, 'location', thePlayer.location)) {
+        if ((thePlayer.role !== "Operations Expert") && (!this.getCard(thePlayer.hand, 'location', thePlayer.location))) {
           return false;
         }
         break;
