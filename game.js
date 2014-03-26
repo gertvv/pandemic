@@ -383,7 +383,7 @@ function Game(eventSink, randy) {
         break;
       case "action_charter_flight":
         var thePlayer = this.findPlayer(player);
-        if this.is_not_dispatcher_and_other_player_selected(player, action) {
+        if (this.is_not_dispatcher_and_other_player_selected(player, action)) {
           return false;
         }
 
@@ -398,7 +398,7 @@ function Game(eventSink, randy) {
         break;
       case "action_direct_flight":
         var thePlayer = this.findPlayer(player);
-        if this.is_not_dispatcher_and_other_player_selected(player, action) {
+        if (this.is_not_dispatcher_and_other_player_selected(player, action)) {
           return false;
         }
 
@@ -413,7 +413,7 @@ function Game(eventSink, randy) {
 
         break;
       case "action_shuttle_flight":
-        if this.is_not_dispatcher_and_other_player_selected(player, action) {
+        if (this.is_not_dispatcher_and_other_player_selected(player, action)) {
           return false;
         }
 
