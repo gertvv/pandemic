@@ -19,7 +19,7 @@ function Game(eventSink, randy) {
     };
 
     this.findPlayer = function (playerId) {
-        return _.find(this.situation.players, function (player) { return player.id === playerId; });
+        return _.findWhere(this.situation.players, {id: playerId });
     };
 
     function player_actions_state(player) {
@@ -488,7 +488,7 @@ function Game(eventSink, randy) {
         case "action_discover_cure":
             self = this;
             thePlayer = this.findPlayer(player);
-            if (((thePlayer.role === "Scientist") && (action.cards.length !== 4)) || (action.cards.length !== 5)) {
+            if (((thePlayer.role === "Scientist") && (action.cards.length !== 4)) || ((thePlayer.role !== "Scientist") && (action.cards.length !== 5))) {
                 return false;
             }
             cards = _.map(action.cards, function (card) { return _.find(thePlayer.hand, function (handCard) { return _.isEqual(handCard, card); }); });
@@ -515,7 +515,8 @@ function Game(eventSink, randy) {
             if (from.location !== to.location) {
                 return false;
             }
-            if (from.role !== "Researcher" && from.location !== action.location) {
+
+            if (from.role !== "Researcher" && (from.location !== action.location)) {
                 return false;
             }
             if (!(player === to.id || player === from.id)) {
@@ -584,6 +585,7 @@ function Game(eventSink, randy) {
             }
             return true;
         }
+        return true;
     };
 
     this.eventRequriesApproval = function (eventName) {
@@ -697,6 +699,7 @@ function Game(eventSink, randy) {
             this.situation.research_centers_available = this.situation.research_centers_available - 1;
             break;
         case "action_discover_cure":
+            disease = this.findDiseaseByLocation(action.cards[0].location);
             self = this;
             cards = _.map(action.cards, function (card) { return _.find(thePlayer.hand, function (handCard) { return _.isEqual(handCard, card); }); });
             _.each(cards, function (card) {
@@ -883,6 +886,12 @@ function Game(eventSink, randy) {
 
             playerSelected = action.player;
             playerSelectedObject = this.findPlayer(playerSelected);
+
+            if (!approved && (playerSelected !== player) && this.eventRequriesApproval(action.name)) {
+                this.requestApproval(player, playerSelected, action);
+                return true;
+            }
+
             card = this.getCard(thePlayer.hand, 'special', action.name);
 
             if (!this.performSpecialAction(playerSelected, playerSelectedObject, card, player, action)) {
