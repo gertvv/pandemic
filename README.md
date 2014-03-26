@@ -1,4 +1,4 @@
-Pandemic
+Pandemic [![Build Status](https://travis-ci.org/JBKahn/pandemic.svg?branch=master)](https://travis-ci.org/JBKahn/pandemic)
 ========
 
 Implementation of the [Pandemic][1] cooperative board game in [node.js][2] and
