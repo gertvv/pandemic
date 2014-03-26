@@ -653,15 +653,17 @@ function Game(eventSink, randy) {
         return _.find(hand, function (card) { return card[attribute] === targetToMatch; });
     };
 
-    this.movePawn = function (newLocation, selectedPawn, player, card) {
+    this.movePawn = function (newLocation, player, card) {
         if (card && player) {
             this.discardPlayerCard(player, card);
         }
+        var selectedPawn = this.findPlayer(player);
         selectedPawn.location = newLocation;
+
         this.emitMoveEventSink("move_pawn", selectedPawn, newLocation);
     };
 
-    this.performRegularAction = function (thePlayer, playerSelected, approved, player, action) {
+    this.performRegularAction = function (thePlayer, approved, player, action) {
         var card, cards, location, disease, number, self, from, to, other;
         switch (action.name) {
         case "action_pass":
@@ -669,15 +671,15 @@ function Game(eventSink, randy) {
         case "action_drive":
         case "action_shuttle_flight":
         case "action_converge":
-            this.movePawn(action.location, playerSelected);
+            this.movePawn(action.location);
             break;
         case "action_charter_flight":
             card = this.getCard(thePlayer.hand, 'location', thePlayer.location);
-            this.movePawn(action.location, playerSelected, player, card);
+            this.movePawn(action.location, player, card);
             break;
         case "action_direct_flight":
             card = this.getCard(thePlayer.hand, 'location', action.location);
-            this.movePawn(action.location, playerSelected, player, card);
+            this.movePawn(action.location, player, card);
             break;
         case "action_treat_disease":
             location = this.findLocation(thePlayer.location);
@@ -882,7 +884,7 @@ function Game(eventSink, randy) {
                 return true;
             }
 
-            if (!this.performRegularAction(thePlayer, playerSelected, approved, player, action)) {
+            if (!this.performRegularAction(thePlayer, approved, player, action)) {
                 return false;
             }
 
