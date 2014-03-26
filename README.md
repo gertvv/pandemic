@@ -49,6 +49,8 @@ Make sure you have jasmine-node installed:
 
 	sudo npm install -g jasmine-node
 
+Tests are also run on TravisCI
+
 TODO
 ----
 
