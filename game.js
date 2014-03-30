@@ -740,6 +740,7 @@ function Game(eventSink, randy) {
                 this.emitStateChange();
                 return true;
             }
+
             from.hand.splice(_.indexOf(from.hand, card), 1);
             to.hand.push(card);
             eventSink.emit({
@@ -755,7 +756,7 @@ function Game(eventSink, randy) {
         default:
             return false;
         }
-        return true;
+        return null;
     };
 
     this.performSpecialAction = function (playerSelected, playerSelectedObject, card, player, action) {
@@ -855,7 +856,7 @@ function Game(eventSink, randy) {
     };
 
     this.act = function (player, action) {
-        var approved, thePlayer, playerSelected, playerSelectedObject, card, activeDisease;
+        var approved, thePlayer, playerSelected, playerSelectedObject, card, activeDisease, action_result;
         if (!this.check_action_prerequisites(player, action)) {
             return false;
         }
@@ -882,9 +883,9 @@ function Game(eventSink, randy) {
                 this.requestApproval(player, playerSelected, action);
                 return true;
             }
-
-            if (!this.performRegularAction(thePlayer, playerSelected, approved, player, action)) {
-                return false;
+            action_result = this.performRegularAction(thePlayer, playerSelected, approved, player, action);
+            if (!(action_result === null)) {
+                return action_result;
             }
 
             this.situation.state.actions_remaining = this.situation.state.actions_remaining - 1;
