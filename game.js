@@ -872,6 +872,9 @@ function Game(eventSink, randy) {
             action = this.situation.state.approve_action;
             player = this.situation.state.player;
             this.situation.state = this.situation.state.parent;
+            eventSink.emit({
+                "event_type": "approve_action",
+            });
         }
         thePlayer = this.findPlayer(player);
         if (this.situation.state.name.match(/^defeat/)) {

@@ -134,6 +134,12 @@ var Replay = function() {
     }
   ];
 
+  this.approve_action = [
+    function(e) {
+      situation.state = situation.state.parent;
+    }
+  ]
+
   this.receive = function(e) {
     _.each(this[e.event_type], function(f) { f(e) });
   }

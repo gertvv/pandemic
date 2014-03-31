@@ -2086,14 +2086,15 @@ describe("Game", function () {
             });
 
             it("requires approval when moving other players", function () {
-            randy.shuffle = shuffleSpecial("special_airlift", 1);
-            gameSetup();
-            spyOn(emitter, 'emit').andCallThrough();
-            testActionRequiringApproval(game, player2, { "name": "special_airlift", "player": player1, "location": "Hong Kong" }, player1);
-            expectDiscard(player2, { "type": "special", "special": "special_airlift" });
-            expectMove(player1, "Hong Kong");
-            expect(emitter.emit.callCount).toBe(2);
-            expectReplayMatch(game);
+                randy.shuffle = shuffleSpecial("special_airlift", 1);
+                gameSetup();
+                spyOn(emitter, 'emit').andCallThrough();
+                testActionRequiringApproval(game, player2, { "name": "special_airlift", "player": player1, "location": "Hong Kong" }, player1);
+                expectDiscard(player2, { "type": "special", "special": "special_airlift" });
+                expectMove(player1, "Hong Kong");
+                expect(emitter.emit.callCount).toBe(3);
+                expect(game.sitatuation).toEqual(replay.situation.parent)
+                expectReplayMatch(game);
             });
 
             it("can not be played during an epidemic", function () {
