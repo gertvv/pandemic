@@ -131,34 +131,127 @@ app.controller('LobbyCtrl', function($scope, GameState) {
 });
 
 app.controller('ActionsCtrl', function($scope, GameState) {
+  $scope.governmentGrant = function(location) {
+    GameState.act({ "name": "special_government_grant", location: location });
+  }
+  $scope.oneQuietNight = function() {
+    GameState.act({ "name": "special_one_quiet_night" });
+  };
+  $scope.resilientLocation = { "location": null };
+  $scope.resilientPopulation = function(location) {
+    GameState.act({name: "special_resilient_population", location: location});
+  }
   $scope.pass = function() {
     GameState.act({ "name": "action_pass" });
   };
   $scope.drive = function(player, location) {
+    if (!($scope.currentPlayer().id === $scope.playerToMove.id) && !($scope.currentPlayer().role === "Dispatcher")) {
+      return;
+    }
+    var playerObject = _.findWhere($scope.game.situation.players, {id: $scope.playerToMove.id}) || {};
+    if (playerObject.location === location) {
+      return;
+    }
+
+    playerIds = _.pluck($scope.game.situation.players, "id")
+    if (!_.contains(playerIds, player)) {
+      return;
+    }
+    if (!_.findWhere($scope.game.situation.locations, {name: location})) {
+      return;
+    }
     GameState.act({ "name": "action_drive", "player": player, "location": location });
   };
   $scope.directFlight = function(player, location) {
+    if (($scope.currentPlayer().id === $scope.playerToMove.id) || ($scope.currentPlayer().role === "Dispatcher")) {
+      return;
+    }
+    var playerObject = _.findWhere($scope.game.situation.players, {id: $scope.playerToMove.id}) || {}
+    if ((playerObject.location === location) || !_.contains(_.pluck(playerObject.hand, 'location'), location)) {
+      return;
+    }
     GameState.act({ "name": "action_direct_flight", "player": player, "location": location });
   };
   $scope.charterFlight = function(player, location) {
+    if (($scope.currentPlayer().id === $scope.playerToMove.id) || ($scope.currentPlayer().role === "Dispatcher")) {
+      return;
+    }
+    var playerObject = _.findWhere($scope.game.situation.players, {id: $scope.playerToMove.id}) || {};
+    if ((playerObject.location === location) || !_.contains(_.pluck(playerObject.hand, 'location'), playerObject.location)) {
+      return;
+    }
     GameState.act({ "name": "action_charter_flight", "player": player, "location": location });
   };
   $scope.shuttleFlight = function(player, location) {
+    if (($scope.currentPlayer().id === $scope.playerToMove.id) || ($scope.currentPlayer().role === "Dispatcher")) {
+      return;
+    }
+    var playerObject = _.findWhere($scope.game.situation.players, {id: $scope.playerToMove.id}) || {};
+    var researchCenterLocation = _.pluck($scope.game.situation.research_centers, 'location');
+    if ((playerObject.location === location) || !_.contains(researchCenterLocation, playerObject.location) || !_.contains(researchCenterLocation, location)) {
+      return;
+    }
     GameState.act({ "name": "action_shuttle_flight", "player": player, "location": location });
   };
   $scope.converge = function(player, location) {
+    if (!($scope.currentPlayer().role === "Dispatcher")) {
+      return;
+    }
+    playerIds = _.pluck($scope.game.situation.players, "id");
+    if (!_.contains(playerIds, player)) {
+      return;
+    }
+    var playerObject = _.findWhere($scope.game.situation.players, {id: $scope.playerToMove.id}) || {};
+    var playerLocations = _.pluck($scope.game.situation.players, 'location');
+    if ((playerObject.location === location) || !_.contains(playerLocations, location)) {
+      return;
+    }
     GameState.act({ "name": "action_converge", "player": player, "location": location });
   };
   $scope.treatDisease = function(disease) {
+    if (!_.contains(_.pluck($scope.game.situation.diseases, "name"), disease.name)) {
+      return;
+    }
+    var location = _.findWhere($scope.game.situation.locations, {name: $scope.currentPlayer().location});
+    if (location.infections[disease.name] === 0) {
+      return;
+    }
     GameState.act({ "name": "action_treat_disease", "disease": disease });
   };
   $scope.buildResearchCenter = function() {
+    if ($scope.game.situation.research_centers_available === 0) {
+      return;
+    }
+    var playerObject = $scope.currentPlayer();
+    if (!_.contains(_.pluck($scope.game.situation.research_centers, "location"), playerObject.location)) {
+      return;
+    }
+    if ((playerObject.role !== "Operations Expert") && (!_.contains(_.pluck(playerObject.hand, 'location'), playerObject.location))) {
+      return;
+    }
     GameState.act({ "name": "action_build_research_center" });
   };
   $scope.discoverCure = function() {
-    var player = $scope.currentPlayer();
-    var n = player.role === "Scientist" ? 4 : 5;
-    GameState.act({ "name": "action_discover_cure", "cards": angular.copy(player.hand.slice(0, n)) });
+    var requiredNumberOfCards = playerObject.role === "Scientist" ? 4:5;
+    var playerObject = $scope.currentPlayer();
+    if (playerObject.hand.length < requiredNumberOfCards) {
+      return;
+    }
+    
+    var cards = playerObject.hand.slice(0,requiredNumberOfCards);
+    if (_.some(cards, _.isUndefined)) {
+      return;
+    }
+
+    var disease = _.findWhere($scope.game.situation.locations, {name: cards[0].location}).disease
+    var diseaseObject = _.findWhere($scope.game.situation.diseases, {name: disease})
+    if (diseaseObject.status !== "no_cure") {
+      return;
+    }
+    if (!_.every(cards, function(card) { return _.findWhere($scope.game.situation.locations, {name: cards[0].location}).disease === disease; })) {
+      return;
+    }
+    GameState.act({ "name": "action_discover_cure", "cards": angular.copy(playerObject.hand.slice(0, requiredNumberOfCards)) });
   };
   $scope.discard = function(card) {
     GameState.act({ "name": "discard_player_card", "card": angular.copy(card) });
@@ -173,21 +266,37 @@ app.controller('ActionsCtrl', function($scope, GameState) {
     var mode = $scope.shareKnowledgeType;
     var location = $scope.shareKnowledgeLocation;
     if (!location || !other || !mode) return;
+
     if (mode == "give") {
-      GameState.act({
-        "name": "action_share_knowledge",
-        "from_player": player,
-        "to_player": other,
-        "location": location
-      });
+      var fromPlayer = player;
+      var toPlayer = other;
     } else if (mode == "receive") {
-      GameState.act({
-        "name": "action_share_knowledge",
-        "from_player": other,
-        "to_player": player,
-        "location": location
-      });
+      var fromPlayer = other;
+      var toPlayer = player;
     }
+
+    var from = _.findWhere($scope.game.situation.players, {id: fromPlayer}) || {};
+    var to = _.findWhere($scope.game.situation.players, {id: toPlayer}) || {};
+    if (!from || !to || from.id == to.id) {
+      return;
+    }
+
+    if (!_.contains(_.pluck(from.hand, 'location'), location)) {
+      return;
+    }
+    if (from.location !== to.location) {
+      return;
+    }
+    if (from.role !== "Researcher" && from.location !== location) {
+      return;
+    }
+
+    GameState.act({
+      "name": "action_share_knowledge",
+      "from_player": fromPlayer,
+      "to_player": toPlayer,
+      "location": location
+    });
   };
   $scope.drawPlayerCard = function() {
     GameState.act({ "name": "draw_player_card" });
@@ -209,11 +318,23 @@ app.controller('ActionsCtrl', function($scope, GameState) {
       return player.id === $scope.user.id;
     })
   };
+  $scope.locationAdjacentAutocomplete = {
+    options: {
+      source: _.findWhere($scope.game.situation.locations, {name: $scope.currentPlayer().location}).adjacent,
+      minLength: 0,
+      select: function( event, ui ) {$scope.driveTarget = ui.label;}
+    }
+  }
   $scope.locationAutocomplete = {
     options: {
       source: _.map(GameState.game.situation.locations, function(location) { return location.name; })
     }
   };
+  $scope.diseaseAutocomplete = {
+    options: {
+      source: ['Black', 'Blue', 'Red', 'Yellow']
+    }
+  }
   $scope.playerToMove = { "id": $scope.user.id };
   $scope.otherPlayer = function(player) {
     return $scope.currentPlayer() ? (player.id !== $scope.currentPlayer().id) : null;

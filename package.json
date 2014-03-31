@@ -9,5 +9,8 @@
     "randy": "1.4.2",
     "clone": "0.1.11",
     "node-persist": "*"
+  },
+  "scripts": {
+    "test": "jasmine-node spec/*.spec.js"
   }
 }

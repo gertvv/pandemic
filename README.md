@@ -1,4 +1,4 @@
-Pandemic
+Pandemic [![Build Status](https://travis-ci.org/JBKahn/pandemic.svg?branch=master)](https://travis-ci.org/JBKahn/pandemic)
 ========
 
 Implementation of the [Pandemic][1] cooperative board game in [node.js][2] and
@@ -49,15 +49,17 @@ Make sure you have jasmine-node installed:
 
 	sudo npm install -g jasmine-node
 
+Tests are also run on TravisCI
+
 TODO
 ----
 
 Gameplay features:
 
  - special events
-   [ ] resilient population
+   [x] resilient population
    [x] government grant
-   [ ] one quiet night
+   [x] one quiet night
    [x] airlift
    [ ] forecast
  - share knowledge UI

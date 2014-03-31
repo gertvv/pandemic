@@ -70,6 +70,12 @@ var Replay = function() {
     }
   ];
 
+  this.discard_discarded_city = [
+    function(e) {
+      situation.infection_cards_discard = _.filter(situation.infection_cards_discard, function(card) { return card.location !== e.location });
+    }
+  ];
+
   this.state_change = [
     function(e) {
       situation.state = e.state;
@@ -127,6 +133,12 @@ var Replay = function() {
       to.hand.push(card[0]);
     }
   ];
+
+  this.approve_action = [
+    function(e) {
+      situation.state = situation.state.parent;
+    }
+  ]
 
   this.receive = function(e) {
     _.each(this[e.event_type], function(f) { f(e) });
