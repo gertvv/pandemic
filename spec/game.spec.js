@@ -92,18 +92,18 @@ describe("Game", function () {
 
     // we expect the emitter to be spied on
     function testActionRequiringApproval(game, player, action, other) {
-        var state = game.situation.state;
-        var request = {
-            "event_type": "state_change",
-            "state": {
-            "name": "approve_action",
-            "player": player,
-            "approve_player": other,
-            "approve_action": action,
-            "parent": state,
-            "terminal": false
-            }
-        };
+        var state = game.situation.state,
+            request = {
+                "event_type": "state_change",
+                "state": {
+                    "name": "approve_action",
+                    "player": player,
+                    "approve_player": other,
+                    "approve_action": action,
+                    "parent": state,
+                    "terminal": false
+                }
+            };
 
         // First try the action and refuse
         emitter.emit.reset();
@@ -832,7 +832,7 @@ describe("Game", function () {
 
         it("detects defeat by too many outbreaks", function () {
             _.each(gameDef.diseases, function (disease) {
-            disease.cubes = 1000;
+                disease.cubes = 1000;
             });
             var nInfections = gameDef.infection_cards_draw.length;
             gameSetup();
@@ -860,7 +860,7 @@ describe("Game", function () {
             });
 
             var outbreaks = _.filter(emitter.emit.calls, function (call) {
-            return call.args[0].event_type === "outbreak";
+                return call.args[0].event_type === "outbreak";
             });
             expect(outbreaks.length).toBe(8);
 

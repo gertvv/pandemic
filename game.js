@@ -874,6 +874,9 @@ function Game(eventSink, randy) {
             this.situation.state = this.situation.state.parent;
         }
         thePlayer = this.findPlayer(player);
+        if (this.situation.state.name.match(/^defeat/)) {
+            return true;
+        }
         if (action.name.match(/^action_/)) {
 
             playerSelected = action.player;
