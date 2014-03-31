@@ -1399,7 +1399,7 @@ describe("Game", function () {
             testActionRequiringApproval(game, player1, action, player2);
             expectDrawState(player1, 2);
             expectMove(player2, "San Francisco");
-            expect(emitter.emit.calls.length).toBe(2);
+            expect(emitter.emit.calls.length).toBe(3);
             expectReplayMatch(game);
             });
 
@@ -1446,7 +1446,7 @@ describe("Game", function () {
             testActionRequiringApproval(game, player1, action, player2);
             expectActions(player1, 1);
             expectMove(player2, "San Francisco");
-            expect(emitter.emit.calls.length).toBe(2);
+            expect(emitter.emit.calls.length).toBe(3);
             expectReplayMatch(game);
             });
 
@@ -1821,7 +1821,7 @@ describe("Game", function () {
                 "card": { "type": "location", "location": "Atlanta" }
             });
             expectActions(player2, 3);
-            expect(emitter.emit.calls.length).toBe(3);
+            expect(emitter.emit.calls.length).toBe(4);
 
             // As the card has been transferred, the action is now impossible
             expect(game.act(player2,
@@ -2111,17 +2111,17 @@ describe("Game", function () {
 
         describe("special_government_grant", function () {
             it("allows to build a research station", function () {
-            randy.shuffle = shuffleSpecial("special_government_grant", 0);
-            gameSetup();
-            spyOn(emitter, 'emit').andCallThrough();
-            expect(game.act(player1, { "name": "special_government_grant", "location": "Hong Kong" })).toBeTruthy();
-            expectDiscard(player1, { "type": "special", "special": "special_government_grant" });
-            expect(emitter.emit).toHaveBeenCalledWith({
-                "event_type": "build_research_center",
-                "location": "Hong Kong"
-            });
-            expect(emitter.emit.callCount).toBe(2);
-            expectReplayMatch(game);
+                randy.shuffle = shuffleSpecial("special_government_grant", 0);
+                gameSetup();
+                spyOn(emitter, 'emit').andCallThrough();
+                expect(game.act(player1, { "name": "special_government_grant", "location": "Hong Kong" })).toBeTruthy();
+                expectDiscard(player1, { "type": "special", "special": "special_government_grant" });
+                expect(emitter.emit).toHaveBeenCalledWith({
+                    "event_type": "build_research_center",
+                    "location": "Hong Kong"
+                });
+                expect(emitter.emit.callCount).toBe(2);
+                expectReplayMatch(game);
             });
 
             it("can be used outside of own turn", function () {

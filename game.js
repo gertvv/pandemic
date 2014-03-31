@@ -775,7 +775,7 @@ function Game(eventSink, randy) {
                 "event_type": "build_research_center",
                 "location": action.location
             });
-            this.situation.research_centers.push({ "location": thePlayer.location });
+            this.situation.research_centers.push({ "location": action.location });
             this.situation.research_centers_available = this.situation.research_centers_available - 1;
         } else if (action.name === "special_one_quiet_night") {
             this.discardPlayerCard(player, card);
