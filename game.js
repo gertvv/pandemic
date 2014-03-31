@@ -775,7 +775,7 @@ function Game(eventSink, randy) {
                 "event_type": "build_research_center",
                 "location": action.location
             });
-            this.situation.research_centers.push({ "location": thePlayer.location });
+            this.situation.research_centers.push({ "location": action.location });
             this.situation.research_centers_available = this.situation.research_centers_available - 1;
         } else if (action.name === "special_one_quiet_night") {
             this.discardPlayerCard(player, card);
@@ -872,8 +872,14 @@ function Game(eventSink, randy) {
             action = this.situation.state.approve_action;
             player = this.situation.state.player;
             this.situation.state = this.situation.state.parent;
+            eventSink.emit({
+                "event_type": "approve_action",
+            });
         }
         thePlayer = this.findPlayer(player);
+        if (this.situation.state.name.match(/^defeat/)) {
+            return true;
+        }
         if (action.name.match(/^action_/)) {
 
             playerSelected = action.player;
