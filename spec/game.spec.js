@@ -2325,6 +2325,40 @@ describe("Game", function () {
                 expect(emitter.emit).not.toHaveBeenCalled();
                 expectReplayMatch(game);
             });
-        }); // special_airlift
+        }); // special_government_grant
+
+        describe("special_one_quiet_night", function () {
+            it("can be used outside of own turn", function () {
+                randy.shuffle = shuffleSpecial("special_one_quiet_night", 1);
+                gameSetup();
+                spyOn(emitter, 'emit').andCallThrough();
+                expect(game.act(player2, { "name": "special_one_quiet_night" })).toBeTruthy();
+                expectDiscard(player2, { "type": "special", "special": "special_one_quiet_night" });
+                expect(emitter.emit.callCount).toBe(1);
+                expect(game.situation.quiet_night).toBeTruthy();
+                expectReplayMatch(game);
+            });
+
+            it("refuses to skip the infection phase without the card", function () {
+                gameSetup();
+                spyOn(emitter, 'emit').andCallThrough();
+                expect(game.act(player1, { "name": "special_one_quiet_night", "location": "Hong Kong" })).toBeFalsy();
+                expect(emitter.emit).not.toHaveBeenCalled();
+                expect(game.situation.quiet_night).toBeFalsy();
+                expectReplayMatch(game);
+            });
+
+            it("can not be played during an epidemic", function () {
+                randy.shuffle = shuffleSpecial("special_one_quiet_night", 1);
+                gameSetup();
+                skipTurnActions(player1);
+                expect(game.act(player1, { "name": "draw_player_card" })).toBeTruthy();
+                spyOn(emitter, 'emit').andCallThrough();
+                expect(game.act(player2, { "name": "special_one_quiet_night", "location": "Baghdad" })).toBeFalsy();
+                expect(emitter.emit).not.toHaveBeenCalled();
+                expect(game.situation.quiet_night).toBeTruthy();
+                expectReplayMatch(game);
+            });
+        }); // special_one_quiet_night
     }); // .act()
 }); // Game

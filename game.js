@@ -760,7 +760,6 @@ function Game(eventSink, randy) {
     };
 
     this.performSpecialAction = function (playerSelected, playerSelectedObject, card, player, action) {
-        var thePlayer = this.findPlayer(player);
         if (action.name === "special_airlift") {
             this.discardPlayerCard(player, card);
             playerSelectedObject.location = action.location;
